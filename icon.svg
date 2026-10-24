@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <!-- a garden-bed beat grid (2 rows x 3 beats, the middle beat lit) with two ladybirds and a beetle on their beats, and two notes -->
+  <rect width="180" height="180" fill="#BFE8A6"/>
+  <rect x="14" y="44" width="152" height="122" rx="14" fill="#7a5235"/>
+  <g fill="#8fd16a"><rect x="22" y="52" width="44" height="50" rx="8"/><rect x="68" y="52" width="44" height="50" rx="8"/><rect x="114" y="52" width="44" height="50" rx="8"/>
+    <rect x="22" y="108" width="44" height="50" rx="8"/><rect x="68" y="108" width="44" height="50" rx="8"/><rect x="114" y="108" width="44" height="50" rx="8"/></g>
+  <rect x="68" y="52" width="44" height="106" rx="8" fill="#fff" opacity=".35"/>
+  <g id="lady" transform="translate(44 78)">
+    <circle cy="-13" r="8" fill="#2b2b3a"/>
+    <circle r="15" fill="#e8413c" stroke="#2b2b3a" stroke-width="2.5"/>
+    <path d="M0 -15v30" stroke="#2b2b3a" stroke-width="2.5"/>
+    <g fill="#2b2b3a"><circle cx="-7" cy="-3" r="3.2"/><circle cx="7" cy="-3" r="3.2"/><circle cx="-6" cy="7" r="2.8"/><circle cx="6" cy="7" r="2.8"/></g>
+    <circle cx="-3.5" cy="-15" r="2.4" fill="#fff"/><circle cx="3.5" cy="-15" r="2.4" fill="#fff"/>
+  </g>
+  <use href="#lady" transform="translate(92 0)"/>
+  <g transform="translate(90 134)">
+    <circle cy="-13" r="7.5" fill="#2b2b3a"/>
+    <ellipse rx="14" ry="16" fill="#2f8f9d" stroke="#1d5a63" stroke-width="2.5"/>
+    <path d="M0 -15v31" stroke="#1d5a63" stroke-width="2.5"/>
+    <circle cx="-3.5" cy="-15" r="2.4" fill="#fff"/><circle cx="3.5" cy="-15" r="2.4" fill="#fff"/>
+    <path d="M-14 -4h-7M14 -4h7M-14 6h-7M14 6h7" stroke="#2b2b3a" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <g fill="#2b2b3a" stroke="#2b2b3a"><path d="M84 12v24" stroke-width="4"/><path d="M84 10l18 6v8l-18-6z" stroke-width="0"/><ellipse cx="78" cy="36" rx="8" ry="6" stroke-width="0"/></g>
+  <g fill="#2b2b3a" stroke="#2b2b3a"><path d="M118 18v18" stroke-width="4"/><path d="M118 16l10 4v6l-10-4z" stroke-width="0"/><ellipse cx="112" cy="36" rx="8" ry="6" stroke-width="0"/></g>
+</svg>

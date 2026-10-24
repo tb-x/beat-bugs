@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "beat-bugs",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5233"],
+      "port": 5233
+    }
+  ]
+}
