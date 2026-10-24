@@ -27,6 +27,7 @@
   }
   body[data-scene=forest]{--sky:#9CCB8B;--sky-top:#D7EBC9;--sky-bot:#76AE66;--soil:#5C3D2A;--soil-edge:#3F2A1C;--bed:#8CBF72;--bed-alt:#7DB363}
   body[data-scene=lake]{--sky:#AEE0F7;--sky-top:#E3F5FF;--sky-bot:#86CBEF;--soil:#2F7FB0;--soil-edge:#1F5F88;--bed:#A3DCF4;--bed-alt:#8FD2EE}
+  body[data-scene=band]{--sky:#D9C6F5;--sky-top:#F6EEFF;--sky-bot:#B79EE6;--soil:#3B3355;--soil-edge:#241F36;--bed:#CDB8F0;--bed-alt:#BFA7EA}
   *{box-sizing:border-box}
   [hidden]{display:none!important}
   html,body{height:100%;margin:0;overflow:hidden;font-family:var(--title);color:var(--ink);
@@ -113,7 +114,9 @@
   #picker .sheet{background:var(--cream);border-radius:24px;box-shadow:0 8px 0 var(--lip),0 16px 40px rgba(0,0,0,.25);padding:10px;
     display:flex;flex-direction:column;align-items:stretch;gap:6px;max-width:100%;animation:popIn .25s ease-out}
   .prow{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:16px}
-  .prow.meadow{background:#DDF3CC} .prow.forest{background:#CFE3C2} .prow.lake{background:#D3ECFF} .prow.me{background:#FFE3E8}
+  .prow.meadow{background:#DDF3CC} .prow.forest{background:#CFE3C2} .prow.lake{background:#D3ECFF} .prow.band{background:#E9DDFB} .prow.extras{background:#FFF0C9} .prow.me{background:#FFE3E8}
+  #picks{display:flex;flex-direction:column;gap:6px}
+  @media (min-aspect-ratio:5/4){ #picks{display:grid;grid-template-columns:auto auto} }   /* sideways: rows in two columns, so all six fit the height */
   .ptag{width:calc(var(--pk)*.62);font-size:calc(var(--pk)*.48);line-height:1;text-align:center}
   .pick{width:var(--pk);height:var(--pk);border-radius:14px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);display:grid;place-items:center;position:relative}
   .pick .bug{width:88%;height:88%}
@@ -200,6 +203,16 @@ const CREATURES = {
   beaver:     { scene: 'lake', label: 'Beaver', clip: 'lake-beaver', trim: 3.5, cut: [0, 0.2] },
   duck:       { scene: 'lake', label: 'Duck', clip: 'lake-duck', trim: 0.51, cut: [0.058, 0.13] },
   turtle:     { scene: 'lake', label: 'Turtle', clip: 'lake-turtle', trim: 0.98, cut: [0.14, 0.08] },
+  piano:      { scene: 'band', label: 'Piano', clip: 'band-piano', trim: 8.65, cut: [0, 0.45], base: 72.1 },
+  hihat:      { scene: 'band', label: 'Hi-hat', clip: 'band-hihat', trim: 39, cut: [0, 0.12] },
+  snare:      { scene: 'band', label: 'Snare drum', clip: 'band-snare', trim: 50, cut: [0, 0.25] },
+  bass:       { scene: 'band', label: 'Bass guitar', clip: 'band-bass', trim: 0.29, cut: [0, 0.35], base: 41.7, octave: -2 },
+  kick:       { scene: 'band', label: 'Big drum', clip: 'band-kick', trim: 0.49, cut: [0, 0.25] },
+  guitar:     { scene: 'extras', label: 'Guitar', clip: 'band-guitar', trim: 5.48, cut: [0, 0.45], base: 55.1, octave: -1 },
+  xylophone:  { scene: 'extras', label: 'Xylophone', clip: 'band-xylophone', trim: 37, cut: [0, 0.22], base: 82.1, octave: 1 },
+  trumpet:    { scene: 'extras', label: 'Trumpet', clip: 'band-trumpet', trim: 0.55, cut: [0, 0.3], base: 68.9 },
+  tambourine: { scene: 'extras', label: 'Tambourine', clip: 'band-tambourine', trim: 1.4, cut: [0, 0.13] },
+  triangle:   { scene: 'extras', label: 'Triangle', clip: 'band-triangle', trim: 1.44, cut: [0, 0.3], base: 70.5 },
   me:         { scene: 'me', label: 'My sound' },
 };
 // A scene fills the five rows (tune row first) and colours the garden.
@@ -207,7 +220,10 @@ const SCENES = [
   { id: 'meadow', icon: '🌼', label: 'Meadow', theme: '#BFE8A6', rows: ['bee', 'cricket', 'ladybird', 'frog', 'beetle'] },
   { id: 'forest', icon: '🌲', label: 'Forest', theme: '#9CCB8B', rows: ['bird', 'woodpecker', 'squirrel', 'owl', 'bear'] },
   { id: 'lake',   icon: '🌊', label: 'Lake',   theme: '#AEE0F7', rows: ['fish', 'dragonfly', 'beaver', 'duck', 'turtle'] },
+  { id: 'band',   icon: '🥁', label: 'Band',   theme: '#D9C6F5', rows: ['piano', 'hihat', 'snare', 'bass', 'kick'] },
 ];
+// More instruments for the picker only (no place of their own)
+const EXTRAS = { icon: '🎵', ids: ['guitar', 'xylophone', 'trumpet', 'tambourine', 'triangle'] };
 // Patterns for the dice, one string per row (tune row first): x = a creature, digits are tune lanes, . = empty
 const SURPRISES = [
   ['0.2.4.2.', 'x.x.x.x.', '..x...x.', 'x.....x.', 'x...x...'],
@@ -250,6 +266,16 @@ const PICS = {
   duck: `<ellipse cx="30" cy="45" rx="20" ry="12" fill="#FFD43B"/><path d="M42 40q10-4 12 4q-8 2-12 0z" fill="#F5C518"/><circle cx="30" cy="24" r="14" fill="#FFE066"/><path d="M28 10q2-6 6-4q-4 1-3 5z" fill="#FFE066"/>${EYES(21, 24.5, 35.5, 4.2)}<path class="mc" d="M22 29q8-3 16 0q-1 5-8 5q-7 0-8-5z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/><g class="mo"><path d="M22 28q8-4 16 0q-2 3-8 3t-8-3z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/><ellipse cx="30" cy="32.5" rx="5" ry="2.4" fill="#ff5d7e"/><path d="M23 34q7 4 14 0q-1 3-7 3.5q-6-0.5-7-3.5z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/></g>`,
   beaver: `<ellipse cx="30" cy="54" rx="14" ry="5" fill="#5C3D2A"/><path d="M19 54h22M22 51l16 6M38 51l-16 6" stroke="#3f2a1c" stroke-width="1"/><circle cx="16" cy="16" r="5.5" fill="#7a5235"/><circle cx="44" cy="16" r="5.5" fill="#7a5235"/><ellipse cx="30" cy="32" rx="19" ry="19" fill="#9C6B43"/><ellipse cx="30" cy="38" rx="10" ry="8" fill="#C79A6E"/><ellipse cx="30" cy="33" rx="3.6" ry="2.6" fill="#2B2B3A"/>${EYES(25, 22, 38, 4.4)}<path class="mc" d="M25 38q5 3 10 0" fill="none" stroke="#3b2516" stroke-width="1.8" stroke-linecap="round"/><ellipse class="mo" cx="30" cy="39" rx="3.4" ry="2.6" fill="#ff5d7e" stroke="#3b2516" stroke-width="1.2"/><g fill="#fff" stroke="#c9b9a0" stroke-width="1"><rect x="26.4" y="39.5" width="3.4" height="6" rx="1"/><rect x="30.2" y="39.5" width="3.4" height="6" rx="1"/></g>`,
   turtle: `<g fill="#7FC97F"><ellipse cx="12" cy="48" rx="6" ry="4"/><ellipse cx="48" cy="48" rx="6" ry="4"/><ellipse cx="14" cy="34" rx="5" ry="3.5"/><ellipse cx="46" cy="34" rx="5" ry="3.5"/></g><circle cx="30" cy="16" r="10" fill="#8ED68E"/>${EYES(14, 25.5, 34.5, 3.8)}${MOUTH(20, '#2f6b1f', 3)}<path d="M8 46a22 20 0 0 1 44 0z" fill="#3F9B5C"/><path d="M8 46h44" stroke="#2c6e40" stroke-width="3" stroke-linecap="round"/><g fill="none" stroke="#2c6e40" stroke-width="1.8"><path d="M24 30l6-4 6 4v7l-6 4-6-4z"/><path d="M24 37l-8 4M36 37l8 4M24 30l-6-3M36 30l6-3M30 26v-4"/></g>`,
+  piano: `<rect x="10" y="54" width="4" height="4" fill="#3B2A4A"/><rect x="46" y="54" width="4" height="4" fill="#3B2A4A"/><rect x="8" y="12" width="44" height="43" rx="5" fill="#3B2A4A"/><rect x="11" y="15" width="38" height="18" rx="3" fill="#5C4670"/>${EYES(22, 24, 36, 4.2)}${MOUTH(27.5, '#fff', 3)}<rect x="11" y="36" width="38" height="15" rx="2" fill="#fff"/><path d="M16.4 36v15M21.8 36v15M27.2 36v15M32.6 36v15M38 36v15M43.4 36v15" stroke="#cfd3dc" stroke-width="1"/><g fill="#1b1b24"><rect x="14.6" y="36" width="3.4" height="8.5" rx=".8"/><rect x="20" y="36" width="3.4" height="8.5" rx=".8"/><rect x="30.8" y="36" width="3.4" height="8.5" rx=".8"/><rect x="36.2" y="36" width="3.4" height="8.5" rx=".8"/><rect x="41.6" y="36" width="3.4" height="8.5" rx=".8"/></g>`,
+  hihat: `<path d="M30 24v32M22 58l8-6 8 6" stroke="#8a8f99" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="30" cy="33" rx="25" ry="6" fill="#E3B23C" stroke="#b8861b" stroke-width="1.5"/><ellipse cx="30" cy="20" rx="25" ry="10" fill="#F4C84E" stroke="#b8861b" stroke-width="1.5"/><circle cx="30" cy="10.5" r="2.2" fill="#b8861b"/>${EYES(18.5, 24, 36, 3.8)}${MOUTH(23.5, '#7a5212', 2.6)}`,
+  snare: `<path d="M8 8l19 15M52 8 33 23" stroke="#8a5a2b" stroke-width="3" stroke-linecap="round"/><circle cx="8" cy="8" r="2.6" fill="#8a5a2b"/><circle cx="52" cy="8" r="2.6" fill="#8a5a2b"/><path d="M8 28v19a22 7 0 0 0 44 0V28z" fill="#E8413C"/><path d="M9 49l5-5 5 5 5-5 6 5 6-5 5 5 5-5 5 5" fill="none" stroke="#fff" stroke-width="1.6" opacity=".85"/><ellipse cx="30" cy="28" rx="22" ry="7" fill="#F4F1EA" stroke="#c9c2b4" stroke-width="1.5"/>${EYES(37.5, 24, 36, 4)}${MOUTH(42.5, '#fff', 2.8)}`,
+  bass: `<rect x="27" y="2" width="6" height="26" rx="2" fill="#6E4529"/><g fill="#cfd3dc"><circle cx="24.5" cy="5" r="2"/><circle cx="35.5" cy="5" r="2"/><circle cx="24.5" cy="11" r="2"/><circle cx="35.5" cy="11" r="2"/></g><path d="M13 36c0-9 8-8 11-14h12c3 6 11 5 11 14c0 6-4 8-4 12c0 6-6 11-13 11s-13-5-13-11c0-4-4-6-4-12z" fill="#2F8F9D" stroke="#1d6470" stroke-width="1.5"/><rect x="23" y="51" width="14" height="3" rx="1" fill="#1d6470"/>${EYES(36, 24, 36, 4.2)}${MOUTH(42, '#fff', 3)}`,
+  kick: `<circle cx="30" cy="30" r="26" fill="#E8413C"/><circle cx="30" cy="30" r="21.5" fill="#F4F1EA"/><g fill="#9aa5b1"><circle cx="30" cy="6" r="2"/><circle cx="30" cy="54" r="2"/><circle cx="6" cy="30" r="2"/><circle cx="54" cy="30" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="47" cy="13" r="2"/><circle cx="13" cy="47" r="2"/><circle cx="47" cy="47" r="2"/></g>${EYES(25, 23, 37, 5.2)}<path class="mc" d="M22 35q8 7 16 0" fill="none" stroke="#7a1f1c" stroke-width="2.6" stroke-linecap="round"/><ellipse class="mo" cx="30" cy="38" rx="5.5" ry="5.5" fill="#ff5d7e" stroke="#7a1f1c" stroke-width="1.6"/>`,
+  guitar: `<rect x="27.5" y="3" width="5" height="24" rx="2" fill="#6E4529"/><rect x="25" y="1" width="10" height="6" rx="2" fill="#4a2e1b"/><circle cx="30" cy="31" r="12.5" fill="#E9A15A"/><circle cx="30" cy="45" r="14.5" fill="#E9A15A"/><circle cx="30" cy="47" r="4.6" fill="#4a2e1b"/><path d="M29 7v17M31 7v17M29 40v15M31 40v15" stroke="#fff" stroke-width=".7" opacity=".8"/><rect x="24" y="53" width="12" height="2.6" rx="1" fill="#4a2e1b"/>${EYES(29, 25, 35, 3.8)}${MOUTH(35, '#6E4529', 2.6)}`,
+  xylophone: `<g><rect x="7" y="9" width="6" height="30" rx="2" fill="#ff6b6b"/><rect x="14.5" y="11" width="6" height="28" rx="2" fill="#ffa94d"/><rect x="22" y="13" width="6" height="26" rx="2" fill="#ffd43b"/><rect x="29.5" y="15" width="6" height="24" rx="2" fill="#69db7c"/><rect x="37" y="17" width="6" height="22" rx="2" fill="#4dabf7"/><rect x="44.5" y="19" width="6" height="20" rx="2" fill="#b072ff"/></g><path d="M40 6l14 10M46 3l10 14" stroke="#8a5a2b" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="6" r="3" fill="#E8413C"/><circle cx="46" cy="3" r="3" fill="#E8413C"/><rect x="5" y="37" width="50" height="18" rx="5" fill="#8B5E3C"/>${EYES(44, 24, 36, 3.8)}${MOUTH(49.5, '#fff', 2.6)}`,
+  trumpet: `<path d="M14 36q-4 8 6 8h14" fill="none" stroke="#E0A800" stroke-width="3"/><path d="M4 30h32" stroke="#E0A800" stroke-width="7" stroke-linecap="round"/><g fill="#E0A800"><rect x="15" y="19" width="3.2" height="9" rx="1"/><rect x="20.5" y="19" width="3.2" height="9" rx="1"/><rect x="26" y="19" width="3.2" height="9" rx="1"/></g><path d="M33 21l17-13v44l-17-13z" fill="#F4C84E" stroke="#b8861b" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="50" cy="30" rx="5" ry="22" fill="#E3B23C" stroke="#b8861b" stroke-width="1.5"/><circle cx="39" cy="26" r="3.6" fill="#fff"/><circle cx="46" cy="26" r="3.6" fill="#fff"/><circle cx="39.6" cy="26.6" r="1.9" fill="#1b1b24"/><circle cx="46.6" cy="26.6" r="1.9" fill="#1b1b24"/><path class="mc" d="M40 33q2.5 2.6 5 0" fill="none" stroke="#7a5212" stroke-width="1.8" stroke-linecap="round"/><ellipse class="mo" cx="42.5" cy="34" rx="2.4" ry="2.8" fill="#ff5d7e" stroke="#7a5212" stroke-width="1.1"/>`,
+  tambourine: `<circle cx="30" cy="30" r="25" fill="#C98B4F"/><circle cx="30" cy="30" r="19.5" fill="#F7E7C6"/><g fill="#d1d5db" stroke="#8a8f99" stroke-width="1"><ellipse cx="30" cy="5.5" rx="4.4" ry="2.6"/><ellipse cx="30" cy="54.5" rx="4.4" ry="2.6"/><ellipse cx="5.5" cy="30" rx="2.6" ry="4.4"/><ellipse cx="54.5" cy="30" rx="2.6" ry="4.4"/><ellipse cx="12.7" cy="12.7" rx="3.4" ry="3.4"/><ellipse cx="47.3" cy="12.7" rx="3.4" ry="3.4"/><ellipse cx="12.7" cy="47.3" rx="3.4" ry="3.4"/><ellipse cx="47.3" cy="47.3" rx="3.4" ry="3.4"/></g>${EYES(27, 24, 36, 4.6)}${MOUTH(34, '#8a5a2b', 3.4)}`,
+  triangle: `<path d="M30 3v6" stroke="#E8413C" stroke-width="2"/><path d="M30 9 53 51H7z" fill="#EEF1F5" fill-opacity=".6" stroke="#9aa5b1" stroke-width="4.5" stroke-linejoin="round"/><path d="M48 22l10-10" stroke="#8a8f99" stroke-width="2.6" stroke-linecap="round"/>${EYES(36, 25, 35, 3.8)}${MOUTH(42, '#5f6b78', 2.6)}`,
   me: `<rect x="26" y="34" width="8" height="18" rx="3" fill="#6b7280"/><path d="M20 26a10 10 0 0 0 20 0" fill="none" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/><path d="M22 56h16" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/><path d="M30 52v4" stroke="#6b7280" stroke-width="3"/><circle cx="30" cy="21" r="13" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/><path d="M19 17h22M18 23h24M22 12h16" stroke="#b7bcc5" stroke-width="1.2"/>${EYES(19, 25, 35, 4)}${MOUTH(25, '#4b5563', 3.4)}<circle cx="30" cy="42" r="2.6" fill="#F25C54"/>`,
 };
 const bugSvg = (id) => `<svg class="bug" viewBox="0 0 60 60" aria-hidden="true">${PICS[id]}</svg>`;
@@ -375,6 +401,16 @@ const Sound = (() => {
     beaver(t, r) { noise(t, 0.08, 'lowpass', 1500 * r, 0.7, env(t, 0.8, 0.08, 0.001)); osc('sine', 180 * r, t, 0.05, env(t, 0.3, 0.05, 0.001)); },
     duck(t, r) { const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1000 * r; f.Q.value = 2; f.connect(env(t, 0.5, 0.13, 0.006)); osc('sawtooth', 520 * r, t, 0.13, f, 380 * r); },
     turtle(t, r) { osc('sine', 420 * r, t, 0.09, env(t, 0.45, 0.09, 0.002), 130 * r); },
+    piano(t, r) { const hz = midiHz(CREATURES.piano.base) * r; osc('triangle', hz, t, 0.45, env(t, 0.3, 0.45, 0.004)); osc('sine', hz * 2, t, 0.25, env(t, 0.08, 0.25, 0.004)); },
+    hihat(t, r) { noise(t, 0.06, 'highpass', 7000 * r, 0.7, env(t, 0.35, 0.05, 0.001)); },
+    snare(t, r) { noise(t, 0.16, 'bandpass', 1800 * r, 0.8, env(t, 0.6, 0.15, 0.001)); osc('triangle', 190 * r, t, 0.08, env(t, 0.35, 0.08, 0.001), 150 * r); },
+    bass(t, r) { const hz = midiHz(CREATURES.bass.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; f.connect(env(t, 0.7, 0.32, 0.005)); osc('sawtooth', hz, t, 0.32, f); },
+    kick(t, r) { osc('sine', 150 * r, t, 0.25, env(t, 1, 0.25, 0.002), 45 * r); },
+    guitar(t, r) { const hz = midiHz(CREATURES.guitar.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2500; f.connect(env(t, 0.35, 0.45, 0.003)); osc('sawtooth', hz, t, 0.45, f); },
+    xylophone(t, r) { const hz = midiHz(CREATURES.xylophone.base) * r; osc('sine', hz, t, 0.22, env(t, 0.35, 0.22, 0.002)); osc('sine', hz * 4, t, 0.05, env(t, 0.06, 0.05, 0.001)); },
+    trumpet(t, r) { const hz = midiHz(CREATURES.trumpet.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2200; f.connect(env(t, 0.3, 0.3, 0.03)); osc('sawtooth', hz, t, 0.3, f); },
+    tambourine(t, r) { for (let i = 0; i < 3; i++) noise(t + i * 0.018, 0.08, 'highpass', 6000 * r, 0.7, env(t + i * 0.018, 0.25, 0.08, 0.001)); },
+    triangle(t, r) { const hz = midiHz(CREATURES.triangle.base) * r * 4; osc('sine', hz, t, 0.6, env(t, 0.18, 0.6, 0.002)); osc('sine', hz * 2.76, t, 0.3, env(t, 0.05, 0.3, 0.002)); },
     me(t, r) { osc('sine', 600 * r, t, 0.08, env(t, 0.2, 0.08, 0.004), 420 * r); },
   };
   return {
@@ -561,7 +597,7 @@ let pickRow = -1, recording = false;
 function buildPicker() {
   const row = (cls, tag, ids, extra = '') => `<div class="prow ${cls}"><span class="ptag" aria-hidden="true">${tag}</span>${ids.map((id) => `<button class="pick" data-id="${id}" aria-label="${CREATURES[id].label}">${bugSvg(id)}</button>`).join('')}${extra}</div>`;
   const recbox = `<div id="recbox" hidden><button id="rec" aria-label="Record my sound"></button><button id="recplay" class="mini" aria-label="Listen">${ICON.listen}</button><button id="recdel" class="mini" aria-label="Delete my sound">${ICON.bin}</button></div>`;
-  $('picks').innerHTML = SCENES.map((s) => row(s.id, s.icon, s.rows)).join('') + row('me', '🎤', ['me'], recbox);
+  $('picks').innerHTML = SCENES.map((s) => row(s.id, s.icon, s.rows)).join('') + row('extras', EXTRAS.icon, EXTRAS.ids) + row('me', '🎤', ['me'], recbox);
 }
 function renderPicker() {
   document.querySelectorAll('.pick').forEach((p) => {
