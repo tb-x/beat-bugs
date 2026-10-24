@@ -15,21 +15,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap">
 <style>
-  /* Layout: a garden-bed board fills the middle (one row per bug: the tall bee row on top plays a tune, the rest are drums), a bug button heads each row and a playhead sweeps the eight beats; the controls (play, three speeds, surprise, clear) sit in a bar below (portrait) or a column on the right (landscape); home top-left, mute top-right */
+  /* Layout: a garden-bed board fills the middle (five rows: the tall top row plays a tune, the rest are drums), a creature button heads each row and opens the picker, and a playhead sweeps the eight beats; the scene buttons (meadow, forest, lake) sit top-centre (portrait) or in the control column (landscape); the controls (play, three speeds, surprise, clear) sit in a bar below (portrait) or a column on the right (landscape); home top-left, mute top-right; the picker (every creature plus "my sound" with the microphone) is an overlay */
   :root{
-    --sky:#BFE8A6; --soil:#8B5E3C; --soil-edge:#6E4529; --bed:#A8D98A; --bed-alt:#98CF78; --cream:#FFF8E7; --lip:#E6D3A8; --ink:#2B2B3A;
+    --sky:#BFE8A6; --sky-top:#E6F7D8; --sky-bot:#A3D98A; --soil:#8B5E3C; --soil-edge:#6E4529; --bed:#A8D98A; --bed-alt:#98CF78;
+    --cream:#FFF8E7; --lip:#E6D3A8; --ink:#2B2B3A;
     --go:#35C24A; --go-edge:#23912F; --stop:#F25C54; --stop-edge:#B83A33; --honey:#FFC93C; --honey-edge:#E59A00;
     --title:'Fredoka','Baloo 2','Trebuchet MS',system-ui,sans-serif;
     --st:env(safe-area-inset-top,0px); --sr:env(safe-area-inset-right,0px); --sb:env(safe-area-inset-bottom,0px); --sl:env(safe-area-inset-left,0px);
-    --cell:56px; --cw:56px; --ch:56px; --gap:4px; --key:clamp(44px,12.5vw,60px);
+    --cell:56px; --cw:56px; --ch:56px; --gap:4px; --key:clamp(44px,12.5vw,60px); --pk:clamp(44px,min(12.5vw,11vh),60px);
     color-scheme: light;
   }
+  body[data-scene=forest]{--sky:#9CCB8B;--sky-top:#D7EBC9;--sky-bot:#76AE66;--soil:#5C3D2A;--soil-edge:#3F2A1C;--bed:#8CBF72;--bed-alt:#7DB363}
+  body[data-scene=lake]{--sky:#AEE0F7;--sky-top:#E3F5FF;--sky-bot:#86CBEF;--soil:#2F7FB0;--soil-edge:#1F5F88;--bed:#A3DCF4;--bed-alt:#8FD2EE}
   *{box-sizing:border-box}
   [hidden]{display:none!important}
   html,body{height:100%;margin:0;overflow:hidden;font-family:var(--title);color:var(--ink);
-    background:radial-gradient(ellipse at 50% 0%,#E6F7D8 0%,var(--sky) 60%,#A3D98A 100%);
+    background:radial-gradient(ellipse at 50% 0%,var(--sky-top) 0%,var(--sky) 60%,var(--sky-bot) 100%);
     touch-action:manipulation;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
-  body{display:grid;grid-template-rows:1fr auto;grid-template-columns:1fr}
+  body{display:grid;grid-template-rows:1fr auto;grid-template-columns:1fr;transition:background .4s}
   button{font:inherit;color:inherit;border:0;padding:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:none}
   svg{display:block}
 
@@ -43,19 +46,20 @@
     display:grid;place-items:center;background:rgba(255,255,255,.85);box-shadow:0 3px 0 rgba(0,0,0,.18)}
   #mute svg{width:26px;height:26px}
   #mute:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
-  #title{position:fixed;top:calc(14px + var(--st));left:0;right:0;text-align:center;font-size:26px;color:#3d6b2a;pointer-events:none;
-    text-shadow:0 2px 0 rgba(255,255,255,.7)}
 
   /* ---------- the board ---------- */
-  #wrap{min-width:0;min-height:0;display:grid;place-items:center;padding:calc(62px + var(--st)) calc(8px + var(--sr)) 8px calc(8px + var(--sl))}
+  #wrap{min-width:0;min-height:0;display:grid;place-items:center;padding:calc(66px + var(--st)) calc(8px + var(--sr)) 8px calc(8px + var(--sl))}
   #board{position:relative;display:grid;gap:var(--gap);padding:var(--gap);border-radius:18px;background:var(--soil);box-shadow:0 6px 0 var(--soil-edge),0 12px 24px rgba(0,0,0,.18);
-    grid-template-columns:var(--cw) repeat(8,var(--cw));grid-template-rows:calc(var(--ch)*1.9) repeat(4,var(--ch))}
+    grid-template-columns:var(--cw) repeat(8,var(--cw));grid-template-rows:calc(var(--ch)*1.9) repeat(4,var(--ch));transition:background .4s,box-shadow .4s}
   .head{border-radius:14px;background:var(--cream);box-shadow:inset 0 -4px 0 var(--lip);display:grid;place-items:center;position:relative}
   .head .bug{width:86%;height:86%}
   .head:active{transform:translateY(2px)}
-  .cell{position:relative;border-radius:12px;background:var(--bed);overflow:visible;display:grid;place-items:center}
+  .head .swap{position:absolute;right:-3px;bottom:-3px;width:calc(var(--cell)*.34);height:calc(var(--cell)*.34);min-width:16px;min-height:16px;border-radius:50%;
+    background:var(--honey);box-shadow:0 2px 0 var(--honey-edge);display:grid;place-items:center}
+  .head .swap svg{width:70%;height:70%}
+  .cell{position:relative;border-radius:12px;background:var(--bed);overflow:visible;display:grid;place-items:center;transition:background .4s}
   .cell.beat2{background:var(--bed-alt)}
-  .cell::before{content:'';width:18%;height:18%;border-radius:50%;background:rgba(60,110,40,.22)}
+  .cell::before{content:'';width:18%;height:18%;border-radius:50%;background:rgba(40,80,60,.2)}
   .cell.has::before{display:none}
   .cell .bug{position:absolute;width:88%;height:88%;left:6%;top:6%;pointer-events:none}
   .cell.tune{background:linear-gradient(to top,#FFD6E0 0 20%,#FFE8C7 20% 40%,#FFF6BF 40% 60%,#D8F5C8 60% 80%,#D3ECFF 80% 100%)}
@@ -66,13 +70,13 @@
   #playhead{position:absolute;top:calc(var(--gap) - 3px);bottom:calc(var(--gap) - 3px);width:calc(var(--cw) + 6px);border-radius:14px;
     border:4px solid rgba(255,255,255,.9);box-shadow:0 0 12px rgba(255,255,255,.8);pointer-events:none;transition:transform .07s linear;z-index:5}
 
-  /* the bugs: idle wiggle, a hop on their beat, singing mouth, flying away when cleared */
+  /* the creatures: idle wiggle, a hop on their beat, singing mouth, flying away when cleared */
   .bug .mo{opacity:0}
   .cell .bug{animation:idle 2.4s ease-in-out infinite;animation-delay:calc(var(--d,0) * -0.37s)}
   .cell.pop .bug{animation:popIn .3s ease-out}
-  .cell.hit .bug,.head.hit .bug{animation:hop .32s ease-out}
-  .cell.hit .bug .mo,.head.hit .bug .mo{opacity:1}
-  .cell.hit .bug .mc,.head.hit .bug .mc{opacity:0}
+  .cell.hit .bug,.head.hit .bug,.pick.hit .bug{animation:hop .32s ease-out}
+  .cell.hit .bug .mo,.head.hit .bug .mo,.pick.hit .bug .mo{opacity:1}
+  .cell.hit .bug .mc,.head.hit .bug .mc,.pick.hit .bug .mc{opacity:0}
   .cell.fly .bug{animation:flyAway .6s ease-in forwards;animation-delay:calc(var(--d,0) * 0.02s)}
   .note{position:absolute;left:50%;top:10%;font:bold calc(var(--cell)*.32)/1 Verdana,sans-serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);
     pointer-events:none;animation:noteUp .7s ease-out forwards;z-index:6}
@@ -85,35 +89,62 @@
   .key:active{transform:translateY(3px);box-shadow:0 1px 0 var(--lip)}
   .key.on{background:var(--honey);box-shadow:0 4px 0 var(--honey-edge)}
   #more{display:flex;gap:8px}
-  #tempo{display:flex;gap:6px;padding:4px;border-radius:999px;background:rgba(230,211,168,.45)}
+  #tempo,#scenes{display:flex;gap:6px;padding:4px;border-radius:999px;background:rgba(230,211,168,.45)}
+  #scenes{position:fixed;z-index:45;top:calc(8px + var(--st));left:50%;transform:translateX(-50%);background:rgba(255,255,255,.55)}
+  #scenes .key{width:44px;height:44px;font-size:24px}
   #play{width:calc(var(--key)*1.45);height:calc(var(--key)*1.45);border-radius:50%;background:var(--go);color:#fff;box-shadow:0 6px 0 var(--go-edge);display:grid;place-items:center}
   #play svg{width:50%;height:50%}
   #play:active{transform:translateY(5px);box-shadow:0 1px 0 var(--go-edge)}
   #play.stop{background:var(--stop);box-shadow:0 6px 0 var(--stop-edge)}
   #clear.undo{background:#D3ECFF;box-shadow:0 4px 0 #9cc4e4}
 
-  /* wide, short screens (a tablet or phone held sideways): controls go to the right */
+  /* wide, short screens (a tablet or phone held sideways): controls go to the right, the scenes join them */
   @media (min-aspect-ratio:5/4){
     body{grid-template-rows:1fr;grid-template-columns:1fr auto}
     #wrap{padding:calc(10px + var(--st)) 8px calc(10px + var(--sb)) calc(62px + var(--sl))}
-    #title{display:none}
-    #controls{flex-direction:column;gap:12px;border-top:0;border-left:4px solid rgba(230,211,168,.9);padding:calc(64px + var(--st)) calc(12px + var(--sr)) calc(10px + var(--sb)) 12px}
-    :root{--key:clamp(44px,12vh,60px)}
+    #controls{flex-direction:column;gap:10px;border-top:0;border-left:4px solid rgba(230,211,168,.9);padding:calc(62px + var(--st)) calc(12px + var(--sr)) calc(10px + var(--sb)) 12px}
+    #scenes{position:static;transform:none;background:rgba(230,211,168,.45)}
+    #scenes .key{width:var(--key);height:var(--key);font-size:calc(var(--key)*.5)}
+    :root{--key:clamp(44px,11vh,60px)}
   }
+
+  /* ---------- the picker ---------- */
+  #picker{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(43,43,58,.35);padding:10px}
+  #picker .sheet{background:var(--cream);border-radius:24px;box-shadow:0 8px 0 var(--lip),0 16px 40px rgba(0,0,0,.25);padding:10px;
+    display:flex;flex-direction:column;align-items:stretch;gap:6px;max-width:100%;animation:popIn .25s ease-out}
+  .prow{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:16px}
+  .prow.meadow{background:#DDF3CC} .prow.forest{background:#CFE3C2} .prow.lake{background:#D3ECFF} .prow.me{background:#FFE3E8}
+  .ptag{width:calc(var(--pk)*.62);font-size:calc(var(--pk)*.48);line-height:1;text-align:center}
+  .pick{width:var(--pk);height:var(--pk);border-radius:14px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);display:grid;place-items:center;position:relative}
+  .pick .bug{width:88%;height:88%}
+  .pick.on{box-shadow:0 0 0 4px var(--honey-edge),0 3px 0 rgba(0,0,0,.12)}
+  .pick.off{opacity:.35}
+  .pick .no{position:absolute;right:-4px;top:-4px;font-size:calc(var(--pk)*.34)}
+  #recbox{display:flex;gap:8px;align-items:center;margin-left:4px}
+  #rec{width:var(--pk);height:var(--pk);border-radius:50%;background:var(--stop);box-shadow:0 4px 0 var(--stop-edge),0 0 0 calc(var(--lvl,0) * 16px) rgba(242,92,84,.35);
+    display:grid;place-items:center;transition:box-shadow .06s}
+  #rec svg{width:46%;height:46%}
+  #rec.ask{animation:pulse 1.1s ease-in-out infinite}
+  #rec.live{background:#C92A2A}
+  .mini{width:calc(var(--pk)*.82);height:calc(var(--pk)*.82);border-radius:50%;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);display:grid;place-items:center}
+  .mini svg{width:55%;height:55%}
+  #pickdone{align-self:center;width:calc(var(--pk)*1.15);height:calc(var(--pk)*1.15);border-radius:50%;background:var(--go);color:#fff;box-shadow:0 5px 0 var(--go-edge);display:grid;place-items:center;margin-top:4px}
+  #pickdone svg{width:52%;height:52%}
 
   @keyframes idle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-2%)}}
   @keyframes popIn{0%{transform:scale(.2)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
   @keyframes hop{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-22%) scale(1.18,1.1)}70%{transform:translateY(0) scale(1.12,.88)}100%{transform:none}}
   @keyframes flyAway{0%{transform:none;opacity:1}100%{transform:translate(40%,-260%) rotate(40deg) scale(.4);opacity:0}}
   @keyframes noteUp{0%{transform:translate(-50%,0) scale(.6);opacity:0}25%{opacity:1}100%{transform:translate(-10%,-140%) scale(1.1);opacity:0}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 </style>
 </head>
-<body>
+<body data-scene="meadow">
 <a id="home" href="../index.html" aria-label="All games" title="All games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 9.8V20h12V9.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M10 20v-5.5h4V20" fill="currentColor"/></svg></a>
-<div id="title">Beat Bugs</div>
 <button id="mute" aria-label="Sound on or off"></button>
 <div id="wrap"><div id="board"><div id="playhead" hidden></div></div></div>
 <div id="controls">
+  <div id="scenes"></div>
   <button id="play" aria-label="Play"></button>
   <div id="tempo"></div>
   <div id="more">
@@ -121,68 +152,107 @@
     <button id="clear" class="key" aria-label="Clear the garden"></button>
   </div>
 </div>
+<div id="picker" hidden>
+  <div class="sheet" role="dialog" aria-label="Pick a sound">
+    <div id="picks"></div>
+    <button id="pickdone" aria-label="Done"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+</div>
 
 <script>
 /* ======== tuning knobs ======== */
 const STEPS = 8;                 // beats across the board (eighth notes, so one bar of 4/4)
+const ROW_COUNT = 5;             // row 0 is the tall tune row, rows 1-4 are drums
 const TEMPOS = [                 // the three speed buttons; bpm counts quarter notes
   { icon: '🐌', bpm: 76, label: 'Slow' },
   { icon: '🐇', bpm: 100, label: 'Medium' },
   { icon: '🐆', bpm: 128, label: 'Fast' },
 ];
-const MELODY = [67, 69, 72, 74, 76]; // the bee row's five lanes, bottom to top (G A C D E, C major pentatonic, MIDI notes)
-const BEE_BASE = 64.65;          // the note the recorded bee hums (measured, median over the clip); playbackRate 1.15-1.93 shifts it to each lane
+const MELODY = [67, 69, 72, 74, 76]; // the tune row's five lanes, bottom to top (G A C D E, C major pentatonic, MIDI notes)
 const LOOKAHEAD = 0.15;          // seconds of notes queued ahead of the audio clock
 const TICK_MS = 25;              // how often the scheduler tops up the queue
-const UNDO_MS = 5000;            // how long the clear button offers to bring the bugs back
+const UNDO_MS = 5000;            // how long the clear button offers to bring the creatures back
 const USE_CLIPS = true;          // the ElevenLabs clips in assets/ (see README); false plays everything synthesized
 const ASSET_V = 1;               // bump after replacing any file in assets/
-const CLIP_TRIM = {              // per-clip volume, evening out the recordings (the beetle and the clap came out quiet)
-  'bug-beetle': 5.6, 'bug-ladybird': 7.2, 'bug-cricket': 1.35, 'bug-frog': 0.48, 'bug-bee': 0.6, 'sfx-whoosh': 0.62,
-};
-const CLIP_CUT = {               // [start, length] in seconds of the recording, so each bug is one short hit on its beat
-  'bug-cricket': [0.01, 0.07], 'bug-frog': [0, 0.35], 'bug-bee': [0, 0.32],
-};
+const WHOOSH_TRIM = 0.62;        // volume of the "flying away" clip
+const REC_MAX = 2;               // longest microphone recording, seconds
+const REC_KEEP = 1.5;            // longest sound kept once the silence is trimmed off
+const REC_SILENCE = 0.45;        // the recording stops this long after the voice goes quiet
+const REC_RATE = 16000;          // recordings are kept at about this sample rate (small enough for localStorage)
 
-// One row per bug, top to bottom. 'tune' rows hold a lane (0-4) per beat; the others are on/off.
-const ROWS = [
-  { id: 'bee', tune: true, label: 'Bee' },
-  { id: 'cricket', label: 'Cricket' },
-  { id: 'ladybird', label: 'Ladybird' },
-  { id: 'frog', label: 'Frog' },
-  { id: 'beetle', label: 'Beetle' },
+// Every creature: its scene, its clip (assets/<clip>.mp3), how loud (trim) and which part of the clip plays
+// (cut: [start, length] in seconds), and for the ones that sing a note, that note (base, MIDI, measured from the
+// clip) so the tune row can pitch them; octave moves the tune up for very high singers. The others play the tune by
+// speeding up or slowing down around their own sound. 'me' is the row's own microphone recording.
+const CREATURES = {
+  bee:        { scene: 'meadow', label: 'Bee', clip: 'bug-bee', trim: 0.6, cut: [0, 0.32], base: 64.65 },
+  cricket:    { scene: 'meadow', label: 'Cricket', clip: 'bug-cricket', trim: 1.35, cut: [0.01, 0.07] },
+  ladybird:   { scene: 'meadow', label: 'Ladybird', clip: 'bug-ladybird', trim: 7.2 },
+  frog:       { scene: 'meadow', label: 'Frog', clip: 'bug-frog', trim: 0.48, cut: [0, 0.35] },
+  beetle:     { scene: 'meadow', label: 'Beetle', clip: 'bug-beetle', trim: 5.6 },
+  bird:       { scene: 'forest', label: 'Songbird', clip: 'forest-bird', trim: 0.67, cut: [0.09, 0.2], base: 87.1, octave: 1 },
+  woodpecker: { scene: 'forest', label: 'Woodpecker', clip: 'forest-woodpecker', trim: 0.51, cut: [0.035, 0.09] },
+  squirrel:   { scene: 'forest', label: 'Squirrel', clip: 'forest-squirrel', trim: 0.84, cut: [0, 0.08] },
+  owl:        { scene: 'forest', label: 'Owl', clip: 'forest-owl', trim: 0.66, cut: [0, 0.25], base: 60.42, octave: -1 },
+  bear:       { scene: 'forest', label: 'Bear', clip: 'forest-bear', trim: 14, cut: [0, 0.35] },
+  fish:       { scene: 'lake', label: 'Fish', clip: 'lake-fish', trim: 0.44, cut: [0.045, 0.16], base: 70.3 },
+  dragonfly:  { scene: 'lake', label: 'Dragonfly', clip: 'lake-dragonfly', trim: 1.58, cut: [0, 0.14] },
+  beaver:     { scene: 'lake', label: 'Beaver', clip: 'lake-beaver', trim: 3.5, cut: [0, 0.2] },
+  duck:       { scene: 'lake', label: 'Duck', clip: 'lake-duck', trim: 0.51, cut: [0.058, 0.13] },
+  turtle:     { scene: 'lake', label: 'Turtle', clip: 'lake-turtle', trim: 0.98, cut: [0.14, 0.08] },
+  me:         { scene: 'me', label: 'My sound' },
+};
+// A scene fills the five rows (tune row first) and colours the garden.
+const SCENES = [
+  { id: 'meadow', icon: '🌼', label: 'Meadow', theme: '#BFE8A6', rows: ['bee', 'cricket', 'ladybird', 'frog', 'beetle'] },
+  { id: 'forest', icon: '🌲', label: 'Forest', theme: '#9CCB8B', rows: ['bird', 'woodpecker', 'squirrel', 'owl', 'bear'] },
+  { id: 'lake',   icon: '🌊', label: 'Lake',   theme: '#AEE0F7', rows: ['fish', 'dragonfly', 'beaver', 'duck', 'turtle'] },
 ];
-// Patterns for the dice (x = a bug; digits are bee lanes, . = empty)
+// Patterns for the dice, one string per row (tune row first): x = a creature, digits are tune lanes, . = empty
 const SURPRISES = [
-  { bee: '0.2.4.2.', cricket: 'x.x.x.x.', ladybird: '..x...x.', frog: 'x.....x.', beetle: 'x...x...' },
-  { bee: '4.3.2.0.', cricket: 'xxxxxxxx', ladybird: '..x...x.', frog: '...x...x', beetle: 'x..x..x.' },
-  { bee: '2..2.4..', cricket: '.x.x.x.x', ladybird: '....x...', frog: 'x.x.....', beetle: 'x.......' },
-  { bee: '0.1.2.3.', cricket: 'x..xx..x', ladybird: '..x..x..', frog: 'x...x...', beetle: 'x.x...x.' },
-  { bee: '........', cricket: 'x.x.x.x.', ladybird: '..x...x.', frog: '.x...x..', beetle: 'x...x.x.' },
+  ['0.2.4.2.', 'x.x.x.x.', '..x...x.', 'x.....x.', 'x...x...'],
+  ['4.3.2.0.', 'xxxxxxxx', '..x...x.', '...x...x', 'x..x..x.'],
+  ['2..2.4..', '.x.x.x.x', '....x...', 'x.x.....', 'x.......'],
+  ['0.1.2.3.', 'x..xx..x', '..x..x..', 'x...x...', 'x.x...x.'],
+  ['........', 'x.x.x.x.', '..x...x.', '.x...x..', 'x...x.x.'],
 ];
-const START_PATTERN = { bee: '0...2...', cricket: 'x.x.x.x.', ladybird: '..x...x.', frog: '........', beetle: 'x...x...' };
+const START_PATTERN = ['0...2...', 'x.x.x.x.', '..x...x.', '........', 'x...x...'];
 
 /* ======== small helpers ======== */
 const NS = 'beatbugs.';
 const load = (k, d = null) => { try { const v = localStorage.getItem(NS + k); return v === null ? d : v; } catch { return d; } };
-const save = (k, v) => { try { localStorage.setItem(NS + k, String(v)); } catch {} };
+const save = (k, v) => { try { localStorage.setItem(NS + k, String(v)); return true; } catch { return false; } };
+const forget = (k) => { try { localStorage.removeItem(NS + k); } catch {} };
 const TEST = /[?&]tbxtest\b/.test(location.search) || navigator.webdriver === true;
 const $ = (id) => document.getElementById(id);
 const midiHz = (m) => 440 * 2 ** ((m - 69) / 12);
+const isTune = (ri) => ri === 0;
 
-/* ======== bug pictures ======== */
-// Every bug faces you; .mc is the closed smile, .mo the open singing mouth.
+/* ======== creature pictures ======== */
+// Every creature faces you; .mc is the closed mouth, .mo the open singing one.
 const EYES = (y, x1 = 25, x2 = 35, r = 4.6) => `<circle cx="${x1}" cy="${y}" r="${r}" fill="#fff"/><circle cx="${x2}" cy="${y}" r="${r}" fill="#fff"/><circle cx="${x1 + 0.8}" cy="${y + 0.8}" r="${r * 0.52}" fill="#1b1b24"/><circle cx="${x2 + 0.8}" cy="${y + 0.8}" r="${r * 0.52}" fill="#1b1b24"/><circle cx="${x1 + 1.8}" cy="${y - 0.6}" r="${r * 0.2}" fill="#fff"/><circle cx="${x2 + 1.8}" cy="${y - 0.6}" r="${r * 0.2}" fill="#fff"/>`;
 const MOUTH = (y, stroke = '#fff', w = 4) => `<path class="mc" d="M${30 - w} ${y}q${w} 3.4 ${w * 2} 0" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/><ellipse class="mo" cx="30" cy="${y + 1.2}" rx="2.8" ry="3.2" fill="#ff5d7e" stroke="${stroke}" stroke-width="1.2"/>`;
+const BEAK = (y, c = '#FFB020', edge = '#c77d00') => `<path class="mc" d="M26 ${y}h8l-4 5z" fill="${c}" stroke="${edge}" stroke-width="1" stroke-linejoin="round"/><g class="mo"><path d="M26 ${y - 1}h8l-4-3.5z" fill="${c}" stroke="${edge}" stroke-width="1" stroke-linejoin="round"/><ellipse cx="30" cy="${y + 1}" rx="3" ry="2" fill="#ff5d7e"/><path d="M26 ${y + 2}h8l-4 4.5z" fill="${c}" stroke="${edge}" stroke-width="1" stroke-linejoin="round"/></g>`;
 const LEGS = (c) => `<g stroke="${c}" stroke-width="3" stroke-linecap="round" fill="none"><path d="M15 32 7 28M14 40 6 42M17 48 10 54M45 32l8-4M46 40l8 2M43 48l7 6"/></g>`;
-const BUGS = {
+const PICS = {
   beetle: `${LEGS('#1f2a37')}<ellipse cx="30" cy="39" rx="17" ry="16" fill="#2E8B9A"/><path d="M30 25v30" stroke="#1d6470" stroke-width="2.5"/><ellipse cx="22" cy="36" rx="3" ry="5" fill="#7fd1dc" opacity=".8"/><path d="M27 12l3-9 3 9z" fill="#1f2a37"/><circle cx="30" cy="20" r="10.5" fill="#1f2a37"/>${EYES(18)}${MOUTH(24.5)}`,
   ladybird: `${LEGS('#1f1f28')}<g stroke="#1f1f28" stroke-width="1.8" fill="none"><path d="M26 12q-3-7-8-8M34 12q3-7 8-8"/></g><circle cx="18" cy="4" r="2.2" fill="#1f1f28"/><circle cx="42" cy="4" r="2.2" fill="#1f1f28"/><circle cx="30" cy="39" r="17" fill="#E8413C"/><path d="M30 23v32" stroke="#1f1f28" stroke-width="2.5"/><g fill="#1f1f28"><circle cx="22" cy="33" r="3.4"/><circle cx="38" cy="33" r="3.4"/><circle cx="20" cy="44" r="2.8"/><circle cx="40" cy="44" r="2.8"/><circle cx="25" cy="51" r="2.2"/><circle cx="35" cy="51" r="2.2"/></g><circle cx="30" cy="20" r="10.5" fill="#1f1f28"/>${EYES(18)}${MOUTH(24.5)}`,
   cricket: `<g stroke="#3f8f2a" stroke-width="2" fill="none" stroke-linecap="round"><path d="M26 11Q18 0 6 3M34 11Q42 0 54 3"/></g><g fill="#4FA334"><path d="M20 30 L5 46 L12 54 L22 42z"/><path d="M40 30 L55 46 L48 54 L38 42z"/></g><ellipse cx="30" cy="40" rx="11" ry="17" fill="#6CC24A"/><path d="M24 34h12M23 41h14M24 48h12" stroke="#4FA334" stroke-width="2"/><circle cx="30" cy="19" r="10.5" fill="#86D867"/>${EYES(17)}${MOUTH(23.5, '#2f6b1f')}`,
   frog: `<g fill="#3f9b40"><ellipse cx="14" cy="53" rx="7" ry="3.5"/><ellipse cx="46" cy="53" rx="7" ry="3.5"/></g><ellipse cx="30" cy="38" rx="23" ry="17" fill="#52B653"/><ellipse cx="30" cy="45" rx="14" ry="8" fill="#B9E89A"/><circle cx="18" cy="22" r="9" fill="#52B653"/><circle cx="42" cy="22" r="9" fill="#52B653"/>${EYES(21, 18, 42, 5.6)}<circle cx="15" cy="35" r="3" fill="#ff9fb2" opacity=".8"/><circle cx="45" cy="35" r="3" fill="#ff9fb2" opacity=".8"/><path class="mc" d="M18 32q12 8 24 0" fill="none" stroke="#24602a" stroke-width="2.4" stroke-linecap="round"/><path class="mo" d="M19 31q11 13 22 0z" fill="#ff5d7e" stroke="#24602a" stroke-width="2"/>`,
   bee: `<g fill="#E3F6FF" stroke="#8fb8cc" stroke-width="1.5"><ellipse cx="15" cy="28" rx="10" ry="7" transform="rotate(-25 15 28)"/><ellipse cx="45" cy="28" rx="10" ry="7" transform="rotate(25 45 28)"/></g><ellipse cx="30" cy="40" rx="15" ry="15" fill="#FFC93C"/><path d="M16 37h28M17.5 46h25" stroke="#2B2B3A" stroke-width="5"/><path d="M30 55l-2.5 4h5z" fill="#2B2B3A"/><g stroke="#2B2B3A" stroke-width="1.8" fill="none"><path d="M26 12q-2-6-6-7M34 12q2-6 6-7"/></g><circle cx="20" cy="5" r="2" fill="#2B2B3A"/><circle cx="40" cy="5" r="2" fill="#2B2B3A"/><circle cx="30" cy="20" r="10.5" fill="#2B2B3A"/>${EYES(18)}${MOUTH(24.5, '#ffb3c6')}`,
+  bird: `<path d="M44 44l12 6-4-10z" fill="#7a4a2b"/><g stroke="#E59A00" stroke-width="2.4" stroke-linecap="round"><path d="M25 52v6M35 52v6M22 58h6M32 58h6"/></g><circle cx="30" cy="34" r="19" fill="#9C6B43"/><ellipse cx="30" cy="42" rx="12" ry="11" fill="#F28C38"/><path d="M12 36q6 10 14 8" fill="none" stroke="#7a4a2b" stroke-width="3" stroke-linecap="round"/><path d="M48 36q-6 10-14 8" fill="none" stroke="#7a4a2b" stroke-width="3" stroke-linecap="round"/>${EYES(27)}${BEAK(33)}`,
+  woodpecker: `<path d="M24 50l-3 9 4-2 1 3 3-9z" fill="#2B2B3A"/><circle cx="30" cy="34" r="19" fill="#2B2B3A"/><ellipse cx="30" cy="40" rx="11" ry="13" fill="#F4F1EA"/><path d="M14 30q4 12 12 14M46 30q-4 12-12 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 4"/><path d="M19 20a12 9 0 0 1 22 0q-11-6-22 0z" fill="#E8413C"/><circle cx="30" cy="13" r="6" fill="#E8413C"/>${EYES(27)}${BEAK(33, '#9aa5b1', '#5f6b78')}`,
+  squirrel: `<path d="M40 52q20-6 14-28q-4-14-14-10q8 6 4 18q-3 10-10 14z" fill="#C8642A"/><path d="M44 46q12-6 9-22" fill="none" stroke="#E8934F" stroke-width="3" stroke-linecap="round"/><ellipse cx="27" cy="42" rx="13" ry="14" fill="#D9772B"/><ellipse cx="27" cy="45" rx="8" ry="9" fill="#F7D9B5"/><g fill="#D9772B"><path d="M17 15l2-9 6 7z"/><path d="M37 15l-2-9-6 7z"/></g><circle cx="27" cy="22" r="11" fill="#D9772B"/><ellipse cx="27" cy="27" rx="6" ry="4.5" fill="#F7D9B5"/>${EYES(20, 22, 32, 4.2)}<circle cx="27" cy="25" r="1.6" fill="#3b2516"/><path class="mc" d="M24 28.5q3 2.6 6 0" fill="none" stroke="#3b2516" stroke-width="1.6" stroke-linecap="round"/><ellipse class="mo" cx="27" cy="29" rx="2.2" ry="2.6" fill="#ff5d7e" stroke="#3b2516" stroke-width="1"/><g><ellipse cx="27" cy="44" rx="5.5" ry="5" fill="#9C6B43"/><path d="M21.5 42a5.5 3.6 0 0 1 11 0z" fill="#6E4529"/></g>`,
+  owl: `<g fill="#7a5235"><path d="M14 18l3-12 8 9z"/><path d="M46 18l-3-12-8 9z"/></g><ellipse cx="30" cy="36" rx="20" ry="21" fill="#9C6B43"/><ellipse cx="30" cy="44" rx="12" ry="11" fill="#E8D2B0"/><path d="M24 40q2 2 4 0M32 40q2 2 4 0M27 46q2 2 4 0M22 46q1 1.6 2 0M36 46q1 1.6 2 0" fill="none" stroke="#b08a62" stroke-width="1.4" stroke-linecap="round"/><circle cx="21.5" cy="26" r="8.5" fill="#F4E6CC"/><circle cx="38.5" cy="26" r="8.5" fill="#F4E6CC"/>${EYES(26, 21.5, 38.5, 6)}<path class="mc" d="M27.5 32h5l-2.5 4z" fill="#E59A00"/><g class="mo"><path d="M27.5 31h5l-2.5-2.5z" fill="#E59A00"/><ellipse cx="30" cy="33.5" rx="2.4" ry="2" fill="#ff5d7e"/><path d="M27.5 35h5l-2.5 3z" fill="#E59A00"/></g><g stroke="#E59A00" stroke-width="2.4" stroke-linecap="round"><path d="M24 56v3M28 56v3M32 56v3M36 56v3"/></g>`,
+  bear: `<circle cx="14" cy="16" r="8" fill="#7a5235"/><circle cx="46" cy="16" r="8" fill="#7a5235"/><circle cx="14" cy="16" r="4" fill="#C79A6E"/><circle cx="46" cy="16" r="4" fill="#C79A6E"/><circle cx="30" cy="33" r="21" fill="#8B5E3C"/><ellipse cx="30" cy="41" rx="11" ry="9" fill="#D9B48A"/><ellipse cx="30" cy="36" rx="4" ry="3" fill="#2B2B3A"/>${EYES(27, 22, 38, 4.4)}<path class="mc" d="M25 42q5 4 10 0" fill="none" stroke="#3b2516" stroke-width="2" stroke-linecap="round"/><ellipse class="mo" cx="30" cy="43.5" rx="3.6" ry="3.4" fill="#ff5d7e" stroke="#3b2516" stroke-width="1.4"/>`,
+  fish: `<g fill="#BFE8FF" stroke="#7cc4ea" stroke-width="1.2"><circle cx="12" cy="14" r="3.4"/><circle cx="7" cy="6" r="2.2"/></g><path d="M46 36l12-11v22z" fill="#FF8C42" stroke="#d96a22" stroke-width="1.5" stroke-linejoin="round"/><path d="M26 22l8-8 6 10z" fill="#FFB067"/><ellipse cx="30" cy="36" rx="19" ry="14" fill="#FFA048" stroke="#d96a22" stroke-width="1.5"/><path d="M36 26q4 10 0 20M41 28q3 8 0 16" fill="none" stroke="#e57f2e" stroke-width="1.6"/><circle cx="20" cy="32" r="6" fill="#fff"/><circle cx="19" cy="32.6" r="3.2" fill="#1b1b24"/><circle cx="18" cy="31" r="1.2" fill="#fff"/><circle class="mc" cx="13.5" cy="40" r="1.8" fill="none" stroke="#a24d14" stroke-width="1.6"/><ellipse class="mo" cx="13.5" cy="40" rx="3" ry="3.6" fill="#ff5d7e" stroke="#a24d14" stroke-width="1.4"/>`,
+  dragonfly: `<g fill="#D3F1FF" stroke="#7cc4ea" stroke-width="1.3" opacity=".95"><ellipse cx="15" cy="26" rx="13" ry="5" transform="rotate(-15 15 26)"/><ellipse cx="45" cy="26" rx="13" ry="5" transform="rotate(15 45 26)"/><ellipse cx="16" cy="35" rx="11" ry="4.4" transform="rotate(15 16 35)"/><ellipse cx="44" cy="35" rx="11" ry="4.4" transform="rotate(-15 44 35)"/></g><rect x="27" y="26" width="6" height="32" rx="3" fill="#2BA8A0"/><path d="M27 34h6M27 40h6M27 46h6M27 52h6" stroke="#1d7a74" stroke-width="1.4"/><circle cx="30" cy="18" r="10" fill="#36C2B8"/>${EYES(16, 25, 35, 5)}${MOUTH(22.5, '#1d5a56', 3.2)}`,
+  duck: `<ellipse cx="30" cy="45" rx="20" ry="12" fill="#FFD43B"/><path d="M42 40q10-4 12 4q-8 2-12 0z" fill="#F5C518"/><circle cx="30" cy="24" r="14" fill="#FFE066"/><path d="M28 10q2-6 6-4q-4 1-3 5z" fill="#FFE066"/>${EYES(21, 24.5, 35.5, 4.2)}<path class="mc" d="M22 29q8-3 16 0q-1 5-8 5q-7 0-8-5z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/><g class="mo"><path d="M22 28q8-4 16 0q-2 3-8 3t-8-3z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/><ellipse cx="30" cy="32.5" rx="5" ry="2.4" fill="#ff5d7e"/><path d="M23 34q7 4 14 0q-1 3-7 3.5q-6-0.5-7-3.5z" fill="#FF922B" stroke="#d9480f" stroke-width="1.2"/></g>`,
+  beaver: `<ellipse cx="30" cy="54" rx="14" ry="5" fill="#5C3D2A"/><path d="M19 54h22M22 51l16 6M38 51l-16 6" stroke="#3f2a1c" stroke-width="1"/><circle cx="16" cy="16" r="5.5" fill="#7a5235"/><circle cx="44" cy="16" r="5.5" fill="#7a5235"/><ellipse cx="30" cy="32" rx="19" ry="19" fill="#9C6B43"/><ellipse cx="30" cy="38" rx="10" ry="8" fill="#C79A6E"/><ellipse cx="30" cy="33" rx="3.6" ry="2.6" fill="#2B2B3A"/>${EYES(25, 22, 38, 4.4)}<path class="mc" d="M25 38q5 3 10 0" fill="none" stroke="#3b2516" stroke-width="1.8" stroke-linecap="round"/><ellipse class="mo" cx="30" cy="39" rx="3.4" ry="2.6" fill="#ff5d7e" stroke="#3b2516" stroke-width="1.2"/><g fill="#fff" stroke="#c9b9a0" stroke-width="1"><rect x="26.4" y="39.5" width="3.4" height="6" rx="1"/><rect x="30.2" y="39.5" width="3.4" height="6" rx="1"/></g>`,
+  turtle: `<g fill="#7FC97F"><ellipse cx="12" cy="48" rx="6" ry="4"/><ellipse cx="48" cy="48" rx="6" ry="4"/><ellipse cx="14" cy="34" rx="5" ry="3.5"/><ellipse cx="46" cy="34" rx="5" ry="3.5"/></g><circle cx="30" cy="16" r="10" fill="#8ED68E"/>${EYES(14, 25.5, 34.5, 3.8)}${MOUTH(20, '#2f6b1f', 3)}<path d="M8 46a22 20 0 0 1 44 0z" fill="#3F9B5C"/><path d="M8 46h44" stroke="#2c6e40" stroke-width="3" stroke-linecap="round"/><g fill="none" stroke="#2c6e40" stroke-width="1.8"><path d="M24 30l6-4 6 4v7l-6 4-6-4z"/><path d="M24 37l-8 4M36 37l8 4M24 30l-6-3M36 30l6-3M30 26v-4"/></g>`,
+  me: `<rect x="26" y="34" width="8" height="18" rx="3" fill="#6b7280"/><path d="M20 26a10 10 0 0 0 20 0" fill="none" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/><path d="M22 56h16" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/><path d="M30 52v4" stroke="#6b7280" stroke-width="3"/><circle cx="30" cy="21" r="13" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/><path d="M19 17h22M18 23h24M22 12h16" stroke="#b7bcc5" stroke-width="1.2"/>${EYES(19, 25, 35, 4)}${MOUTH(25, '#4b5563', 3.4)}<circle cx="30" cy="42" r="2.6" fill="#F25C54"/>`,
 };
-const bugSvg = (id) => `<svg class="bug" viewBox="0 0 60 60" aria-hidden="true">${BUGS[id]}</svg>`;
+const bugSvg = (id) => `<svg class="bug" viewBox="0 0 60 60" aria-hidden="true">${PICS[id]}</svg>`;
 const ICON = {
   play: '<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
   stop: '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2.5" fill="currentColor"/></svg>',
@@ -190,16 +260,48 @@ const ICON = {
   undo: '<svg viewBox="0 0 24 24"><path d="M9 5 3.5 10.5 9 16" fill="none" stroke="#2f6fa8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10.5h9a6.5 6.5 0 0 1 0 13h-3" fill="none" stroke="#2f6fa8" stroke-width="2.8" stroke-linecap="round"/></svg>',
   soundOn: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2B2B3A"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#2B2B3A" stroke-width="2" stroke-linecap="round"/></svg>',
   soundOff: '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2B2B3A"/><path d="M16.5 9.5l5 5m0-5-5 5" stroke="#F25C54" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  swap: '<svg viewBox="0 0 24 24"><path d="M5 9h12l-3-3M19 15H7l3 3" fill="none" stroke="#7a4b00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  recStop: '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="#fff"/></svg>',
+  listen: '<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#35C24A"/></svg>',
+  bin: '<svg viewBox="0 0 24 24"><path d="M5 7h14l-1.2 13a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" fill="#8a6d3b"/><path d="M3.5 6h17M9.5 6V3.8h5V6" stroke="#8a6d3b" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
 };
 
+/* ======== rows: which creature sings in each row ======== */
+let kit = (() => {
+  try { const k = JSON.parse(load('kit', 'null')); if (Array.isArray(k) && k.length === ROW_COUNT && k.every((id) => id in CREATURES)) return k; } catch {}
+  return [...SCENES[0].rows];
+})();
+let sceneId = SCENES.some((s) => s.id === load('scene')) ? load('scene') : 'meadow';
+const saveKit = () => save('kit', JSON.stringify(kit));
+
+/* ======== my own sounds (recordings) ======== */
+// A row playing "my sound" uses its own recording. Recordings stay on this device: localStorage (beatbugs.rec<row>),
+// about 16 kHz 16-bit, never uploaded or sent anywhere. The bin in the picker deletes them.
+const recs = [];   // per row: { data: Float32Array, rate } or undefined
+function encodeRec(r) {
+  const i16 = new Int16Array(r.data.length); for (let i = 0; i < i16.length; i++) i16[i] = Math.max(-1, Math.min(1, r.data[i])) * 32767;
+  const u8 = new Uint8Array(i16.buffer); let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return JSON.stringify({ rate: r.rate, pcm: btoa(s) });
+}
+function decodeRec(txt) {
+  try {
+    const o = JSON.parse(txt), bin = atob(o.pcm), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const i16 = new Int16Array(u8.buffer), data = new Float32Array(i16.length); for (let i = 0; i < data.length; i++) data[i] = i16[i] / 32767;
+    return data.length && o.rate >= 3000 ? { data, rate: o.rate } : undefined;
+  } catch { return undefined; }
+}
+for (let ri = 0; ri < ROW_COUNT; ri++) { const t = load('rec' + ri); if (t) recs[ri] = decodeRec(t); }
+function storeRec(ri) { if (recs[ri]) save('rec' + ri, encodeRec(recs[ri])); else forget('rec' + ri); }   // if storage is full the sound still works until the page closes
+
 /* ======== sound ======== */
-// Each bug has a synthesized voice. With USE_CLIPS on, a recorded clip (assets/bug-<id>.mp3) replaces it once loaded,
-// and the synthesized voice stays as the fallback (Blast Off pattern). The bee clip is pitched to each lane with playbackRate.
-const CLIPS = ['bug-bee', 'bug-cricket', 'bug-ladybird', 'bug-frog', 'bug-beetle', 'sfx-whoosh'];
+// Each creature has a synthesized voice. With USE_CLIPS on, its recorded clip replaces it once loaded, and the
+// synthesized voice stays as the fallback (Blast Off pattern). The tune row pitches every sound with playbackRate.
+const CLIPS = [...new Set(Object.values(CREATURES).map((c) => c.clip).filter(Boolean)), 'sfx-whoosh'];
 const Sound = (() => {
   let ac = null, out = null, noiseBuf = null;
   let muted = TEST || load('muted') === '1';
-  const raw = {}, clips = {};   // bytes start loading now; decoding needs the AudioContext from the first tap
+  const raw = {}, clips = {}, recBufs = [];   // clip bytes start loading now; decoding needs the AudioContext from the first tap
   if (USE_CLIPS && !TEST) for (const n of CLIPS) raw[n] = fetch(`assets/${n}.mp3?v=${ASSET_V}`).then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null);
   function ctx() {
     if (muted) return null;
@@ -224,101 +326,190 @@ const Sound = (() => {
     if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
     o.connect(dest); o.start(t); o.stop(t + dur + 0.05); return o;
   }
-  function clip(name, t, rate = 1) {   // false when the clip isn't loaded, so the caller synthesizes instead
-    const buf = clips[name]; if (!buf) return false;
-    const s = ac.createBufferSource(), g = ac.createGain();
-    const [off, len] = CLIP_CUT[name] || [0, buf.duration], end = t + len / rate, vol = 0.9 * (CLIP_TRIM[name] ?? 1);
+  function noise(t, dur, type, f, q, dest) {
+    const s = ac.createBufferSource(), fl = ac.createBiquadFilter();
+    s.buffer = noiseBuf; fl.type = type; fl.frequency.value = f; fl.Q.value = q;
+    s.connect(fl); fl.connect(dest); s.start(t, Math.random() * 0.3); s.stop(t + dur + 0.02);
+  }
+  function playBuf(buf, t, rate, vol, off = 0, len = buf.duration - off) {
+    const s = ac.createBufferSource(), g = ac.createGain(), end = t + len / rate;
     s.buffer = buf; s.playbackRate.value = rate;
     g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, Math.max(t, end - 0.02)); g.gain.linearRampToValueAtTime(0, end);   // short fade, no click at the cut
-    s.connect(g).connect(out); s.start(t, off); s.stop(end + 0.01); return true;
+    s.connect(g).connect(out); s.start(t, off); s.stop(end + 0.01);
   }
+  function recBuf(ri) {
+    const r = recs[ri]; if (!r) return null;
+    if (!recBufs[ri] || recBufs[ri].src !== r) { const b = ac.createBuffer(1, r.data.length, r.rate); b.getChannelData(0).set(r.data); recBufs[ri] = { src: r, buf: b }; }
+    return recBufs[ri].buf;
+  }
+  // synthesized voices; r scales the pitch (1 = the creature's own sound)
   const SYNTH = {
-    beetle(t) { osc('sine', 150, t, 0.32, env(t, 0.9, 0.32), 42); osc('triangle', 90, t, 0.05, env(t, 0.25, 0.05)); },
-    ladybird(t) {   // a clap: three quick filtered noise bursts
-      for (let i = 0; i < 3; i++) {
-        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), tt = t + i * 0.012;
-        s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 1.2;
-        s.connect(f); f.connect(env(tt, i === 2 ? 0.5 : 0.3, i === 2 ? 0.16 : 0.02, 0.002)); s.start(tt, Math.random() * 0.3); s.stop(tt + 0.2);
-      }
-    },
-    cricket(t) { for (let i = 0; i < 3; i++) osc('sine', 4300, t + i * 0.022, 0.016, env(t + i * 0.022, 0.12, 0.016, 0.002)); },
-    frog(t) {       // "rib-bit": two low throaty pulses
+    beetle(t, r) { osc('sine', 150 * r, t, 0.32, env(t, 0.9, 0.32), 42 * r); osc('triangle', 90 * r, t, 0.05, env(t, 0.25, 0.05)); },
+    ladybird(t, r) { for (let i = 0; i < 3; i++) { const tt = t + i * 0.012; noise(tt, 0.18, 'bandpass', 1400 * r, 1.2, env(tt, i === 2 ? 0.5 : 0.3, i === 2 ? 0.16 : 0.02, 0.002)); } },
+    cricket(t, r) { for (let i = 0; i < 3; i++) osc('sine', 4300 * r, t + i * 0.022, 0.016, env(t + i * 0.022, 0.12, 0.016, 0.002)); },
+    frog(t, r) {
       [0, 0.1].forEach((d, i) => {
         const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 600; f.connect(env(t + d, 0.4, 0.09, 0.008));
-        osc('sawtooth', i ? 110 : 98, t + d, 0.09, f, i ? 92 : 110);
+        osc('sawtooth', (i ? 110 : 98) * r, t + d, 0.09, f, (i ? 92 : 110) * r);
       });
     },
-    bee(t, midi) {
+    bee(t, r) {
+      const hz = midiHz(CREATURES.bee.base) * r;
       const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1800; f.connect(env(t, 0.22, 0.28, 0.02));
-      const o = osc('sawtooth', midiHz(midi), t, 0.28, f);
-      const lfo = ac.createOscillator(), depth = ac.createGain(); lfo.frequency.value = 22; depth.gain.value = midiHz(midi) * 0.02;
+      const o = osc('sawtooth', hz, t, 0.28, f);
+      const lfo = ac.createOscillator(), depth = ac.createGain(); lfo.frequency.value = 22; depth.gain.value = hz * 0.02;
       lfo.connect(depth).connect(o.frequency); lfo.start(t); lfo.stop(t + 0.3);
-      osc('sine', midiHz(midi), t, 0.28, env(t, 0.12, 0.28, 0.02));
+      osc('sine', hz, t, 0.28, env(t, 0.12, 0.28, 0.02));
     },
+    bird(t, r) { const hz = midiHz(CREATURES.bird.base) * r; osc('sine', hz * 1.08, t, 0.16, env(t, 0.2, 0.16, 0.01), hz * 0.92); },
+    woodpecker(t, r) { noise(t, 0.04, 'bandpass', 1800 * r, 6, env(t, 0.9, 0.035, 0.001)); osc('triangle', 900 * r, t, 0.02, env(t, 0.15, 0.02, 0.001)); },
+    squirrel(t, r) { noise(t, 0.05, 'highpass', 2500 * r, 0.8, env(t, 0.5, 0.04, 0.001)); },
+    owl(t, r) { const hz = midiHz(CREATURES.owl.base) * r; osc('sine', hz, t, 0.26, env(t, 0.3, 0.26, 0.04), hz * 0.96); osc('sine', hz * 2, t, 0.2, env(t, 0.04, 0.2, 0.04)); },
+    bear(t, r) { osc('sine', 110 * r, t, 0.3, env(t, 0.9, 0.3), 60 * r); osc('triangle', 220 * r, t, 0.06, env(t, 0.2, 0.06)); noise(t, 0.05, 'bandpass', 300 * r, 2, env(t, 0.3, 0.05, 0.002)); },
+    fish(t, r) { const hz = midiHz(CREATURES.fish.base) * r; osc('sine', hz * 0.85, t, 0.11, env(t, 0.3, 0.11, 0.004), hz * 1.25); },
+    dragonfly(t, r) {
+      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1400; const g = env(t, 0.25, 0.13, 0.004); f.connect(g);
+      osc('sawtooth', 170 * r, t, 0.13, f);
+      const lfo = ac.createOscillator(), depth = ac.createGain(); lfo.frequency.value = 45; depth.gain.value = 0.12; lfo.connect(depth).connect(g.gain); lfo.start(t); lfo.stop(t + 0.15);
+    },
+    beaver(t, r) { noise(t, 0.08, 'lowpass', 1500 * r, 0.7, env(t, 0.8, 0.08, 0.001)); osc('sine', 180 * r, t, 0.05, env(t, 0.3, 0.05, 0.001)); },
+    duck(t, r) { const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1000 * r; f.Q.value = 2; f.connect(env(t, 0.5, 0.13, 0.006)); osc('sawtooth', 520 * r, t, 0.13, f, 380 * r); },
+    turtle(t, r) { osc('sine', 420 * r, t, 0.09, env(t, 0.45, 0.09, 0.002), 130 * r); },
+    me(t, r) { osc('sine', 600 * r, t, 0.08, env(t, 0.2, 0.08, 0.004), 420 * r); },
   };
   return {
     get muted() { return muted; },
     get ctx() { return muted ? null : ac; },
     setMuted(m) { muted = m; save('muted', m ? '1' : '0'); if (m) ac?.suspend(); else ctx(); },
     unlock() { ctx(); },
-    play(id, t, lane) {
+    // play row ri's creature at time t; lane (0-4) is a tune-row note
+    play(ri, t, lane) {
       if (!ac || muted) return;
       t = Math.max(t ?? 0, ac.currentTime);
-      const midi = lane == null ? null : MELODY[lane];
-      const rate = midi == null ? 1 : 2 ** ((midi - BEE_BASE) / 12);
-      if (!clip('bug-' + id, t, rate)) SYNTH[id](t, midi ?? MELODY[0]);
+      const id = kit[ri], c = CREATURES[id];
+      let rate = 1;
+      if (lane != null) rate = c.base ? 2 ** ((MELODY[lane] + 12 * (c.octave || 0) - c.base) / 12) : 2 ** ((MELODY[lane] - MELODY[2]) / 12);
+      if (id === 'me') { const b = recBuf(ri); if (b) playBuf(b, t, rate, 0.9); else SYNTH.me(t, rate); return; }
+      const buf = clips[c.clip];
+      if (buf) { const [off, len] = c.cut || [0, buf.duration]; playBuf(buf, t, rate, 0.9 * (c.trim ?? 1), off, len); }
+      else SYNTH[id](t, rate);
     },
-    whoosh() { if (!ctx()) return; const t = ac.currentTime; if (!clip('sfx-whoosh', t)) osc('sine', 300, t, 0.45, env(t, 0.08, 0.45, 0.05), 1200); },
+    whoosh() { if (!ctx()) return; const t = ac.currentTime; if (clips['sfx-whoosh']) playBuf(clips['sfx-whoosh'], t, 1, 0.9 * WHOOSH_TRIM); else osc('sine', 300, t, 0.45, env(t, 0.08, 0.45, 0.05), 1200); },
   };
 })();
 
+/* ======== the microphone ======== */
+// Records one short sound, stopping by itself when the voice goes quiet (or after REC_MAX seconds); tap again to stop
+// sooner. It uses its own AudioContext and switches the microphone off straight after, so the game's sound comes back
+// to the speaker. Only works where the browser allows it (https or localhost), and only after a parent says yes.
+const Mic = {
+  ok: TEST || !!(window.isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext)),
+  denied: false, stop: null,
+  async record(onLevel) {
+    if (TEST) return Mic.fake(onLevel);
+    const AC = window.AudioContext || window.webkitAudioContext, ctx = new AC(); ctx.resume();   // made inside the tap, so iPhones let it run
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (e) { ctx.close(); if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) Mic.denied = true; throw e; }
+    const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(2048, 1, 1), hush = ctx.createGain();
+    hush.gain.value = 0; src.connect(proc); proc.connect(hush); hush.connect(ctx.destination);
+    return new Promise((resolve) => {
+      const chunks = []; let n = 0, heard = false, quiet = 0, done = false;
+      const finish = () => {
+        if (done) return; done = true; Mic.stop = null;
+        proc.onaudioprocess = null; src.disconnect(); proc.disconnect(); stream.getTracks().forEach((tr) => tr.stop());
+        const rate = ctx.sampleRate; ctx.close();
+        const data = new Float32Array(n); let o = 0; for (const c of chunks) { data.set(c, o); o += c.length; }
+        resolve({ data, rate });
+      };
+      Mic.stop = finish;
+      proc.onaudioprocess = (e) => {
+        const d = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length;
+        let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i];
+        const rms = Math.sqrt(s / d.length); onLevel?.(rms);
+        if (rms > 0.02) { heard = true; quiet = 0; } else if (heard) quiet += d.length / ctx.sampleRate;
+        if ((heard && quiet > REC_SILENCE) || n / ctx.sampleRate > REC_MAX) finish();
+      };
+    });
+  },
+  // tests (?tbxtest) never touch the microphone: a made-up "boo" with silence around it goes through the same shaping
+  async fake(onLevel) {
+    const rate = 48000, data = new Float32Array(rate);
+    for (let i = 0; i < data.length; i++) { const t = i / rate; data[i] = 0.002 * Math.sin(i * 1.7) + (t > 0.3 && t < 0.62 ? 0.4 * Math.sin(2 * Math.PI * 220 * t) * Math.sin(Math.PI * (t - 0.3) / 0.32) : 0); }
+    onLevel?.(0.3); return { data, rate };
+  },
+};
+// trim the silence off both ends, keep at most REC_KEEP seconds, bring it down to about REC_RATE, level it, fade the ends
+function shapeRecording({ data, rate }) {
+  let pk = 0; for (let i = 0; i < data.length; i++) pk = Math.max(pk, Math.abs(data[i]));
+  if (pk < 0.01) return null;                                   // nothing heard
+  const th = pk * 0.08; let a = 0, b = data.length - 1;
+  while (a < b && Math.abs(data[a]) < th) a++;
+  while (b > a && Math.abs(data[b]) < th) b--;
+  a = Math.max(0, a - Math.round(rate * 0.01));
+  b = Math.min(data.length, b + Math.round(rate * 0.05), a + Math.round(rate * REC_KEEP));
+  const k = Math.max(1, Math.round(rate / REC_RATE)), outRate = rate / k, n = Math.floor((b - a) / k), out = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let s = 0; for (let j = 0; j < k; j++) s += data[a + i * k + j]; out[i] = s / k; }
+  let p2 = 0; for (let i = 0; i < n; i++) p2 = Math.max(p2, Math.abs(out[i]));
+  const g = 0.9 / (p2 || 1), fi = Math.round(outRate * 0.005), fo = Math.round(outRate * 0.03);
+  for (let i = 0; i < n; i++) out[i] *= g * Math.min(1, i / fi, (n - 1 - i) / fo);
+  return n > outRate * 0.03 ? { data: out, rate: outRate } : null;
+}
+
 /* ======== pattern ======== */
-let pat = {}, tempo = 1, undoPat = null, undoTimer = 0;
-function fromStrings(s) {
-  const p = {};
-  for (const r of ROWS) {
-    const str = (s[r.id] || '').padEnd(STEPS, '.');
-    p[r.id] = [...str.slice(0, STEPS)].map((c) => r.tune ? ('01234'.includes(c) ? +c : -1) : (c === 'x' ? 1 : 0));
-  }
-  return p;
+let pat = [], tempo = 1, undoPat = null, undoTimer = 0;
+function fromStrings(rows) {
+  return Array.from({ length: ROW_COUNT }, (_, ri) => {
+    const str = (rows[ri] || '').padEnd(STEPS, '.');
+    return [...str.slice(0, STEPS)].map((c) => isTune(ri) ? ('01234'.includes(c) ? +c : -1) : (c === 'x' ? 1 : 0));
+  });
 }
 function loadPattern() {
-  try {
-    const p = JSON.parse(load('pattern', 'null'));
-    if (p && ROWS.every((r) => Array.isArray(p[r.id]) && p[r.id].length === STEPS)) return p;
+  const ok = (p) => Array.isArray(p) && p.length === ROW_COUNT && p.every((r) => Array.isArray(r) && r.length === STEPS);
+  try { const p = JSON.parse(load('rows', 'null')); if (ok(p)) return p; } catch {}
+  try {   // the first version saved the pattern by bug name
+    const old = JSON.parse(load('pattern', 'null')), p = old && SCENES[0].rows.map((id) => old[id]);
+    if (p && ok(p)) return p;
   } catch {}
   return fromStrings(START_PATTERN);
 }
-const savePattern = () => save('pattern', JSON.stringify(pat));
-const isOn = (r, s) => r.tune ? pat[r.id][s] >= 0 : pat[r.id][s] === 1;
-const bugCount = () => ROWS.reduce((n, r) => n + pat[r.id].filter((v, s) => isOn(r, s)).length, 0);
+const savePattern = () => save('rows', JSON.stringify(pat));
+const isOn = (ri, s) => isTune(ri) ? pat[ri][s] >= 0 : pat[ri][s] === 1;
+const bugCount = () => pat.reduce((n, row, ri) => n + row.filter((v, s) => isOn(ri, s)).length, 0);
 pat = loadPattern();
 tempo = Math.min(TEMPOS.length - 1, Math.max(0, +load('tempo', 1) || 0));
 
 /* ======== the board ======== */
 const board = $('board'), playhead = $('playhead');
-const cells = ROWS.map(() => []), heads = [];
-ROWS.forEach((r, ri) => {
+const cells = Array.from({ length: ROW_COUNT }, () => []), heads = [];
+for (let ri = 0; ri < ROW_COUNT; ri++) {
   const h = document.createElement('button');
-  h.className = 'head'; h.dataset.r = ri; h.setAttribute('aria-label', r.label); h.innerHTML = bugSvg(r.id);
+  h.className = 'head'; h.dataset.r = ri;
   board.appendChild(h); heads.push(h);
   for (let s = 0; s < STEPS; s++) {
     const c = document.createElement('button');
-    c.className = 'cell' + (r.tune ? ' tune' : '') + (Math.floor(s / 4) % 2 ? ' beat2' : '');
+    c.className = 'cell' + (isTune(ri) ? ' tune' : '') + (Math.floor(s / 4) % 2 ? ' beat2' : '');
     c.dataset.r = ri; c.dataset.s = s; c.style.setProperty('--d', ri * 3 + s);
-    c.setAttribute('aria-label', `${r.label}, beat ${s + 1}`);
     board.appendChild(c); cells[ri].push(c);
   }
-});
+}
+function renderHead(ri) {
+  const c = CREATURES[kit[ri]], h = heads[ri];
+  h.innerHTML = bugSvg(kit[ri]) + `<span class="swap" aria-hidden="true">${ICON.swap}</span>`;
+  h.setAttribute('aria-label', `${c.label}: pick a different sound`);
+  cells[ri].forEach((cell, s) => cell.setAttribute('aria-label', `${c.label}, beat ${s + 1}`));
+}
 function renderCell(ri, s, popIt = false) {
-  const r = ROWS[ri], c = cells[ri][s], on = isOn(r, s);
+  const c = cells[ri][s], on = isOn(ri, s);
   c.classList.toggle('has', on); c.classList.remove('fly');
-  if (!on) { c.querySelector('.bug')?.remove(); return; }
-  if (!c.querySelector('.bug')) c.insertAdjacentHTML('beforeend', bugSvg(r.id));
-  if (r.tune) c.style.setProperty('--lane', pat[r.id][s]);
+  const old = c.querySelector('.bug');
+  if (!on) { old?.remove(); return; }
+  if (!old || old.dataset.id !== kit[ri]) { old?.remove(); c.insertAdjacentHTML('beforeend', bugSvg(kit[ri])); c.querySelector('.bug').dataset.id = kit[ri]; }
+  if (isTune(ri)) c.style.setProperty('--lane', pat[ri][s]);
   if (popIt) restartClass(c, 'pop');
 }
-function renderAll() { ROWS.forEach((r, ri) => { for (let s = 0; s < STEPS; s++) renderCell(ri, s); }); }
+function renderRow(ri, popIt = false) { renderHead(ri); for (let s = 0; s < STEPS; s++) renderCell(ri, s, popIt && isOn(ri, s)); }
+function renderAll() { for (let ri = 0; ri < ROW_COUNT; ri++) renderRow(ri); }
 function restartClass(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 function sing(el) {
   restartClass(el, 'hit');
@@ -328,21 +519,110 @@ function sing(el) {
 
 board.addEventListener('click', (e) => {
   const head = e.target.closest('.head');
-  if (head) { const r = ROWS[+head.dataset.r]; Sound.unlock(); Sound.play(r.id, 0, r.tune ? 2 : null); sing(head); return; }
+  if (head) { Sound.unlock(); openPicker(+head.dataset.r); return; }
   const c = e.target.closest('.cell'); if (!c) return;
-  const ri = +c.dataset.r, s = +c.dataset.s, r = ROWS[ri];
+  const ri = +c.dataset.r, s = +c.dataset.s;
   Sound.unlock();
-  if (r.tune) {
+  if (isTune(ri)) {
     // where you tap picks the note: the top of the cell is the highest lane
     const box = c.getBoundingClientRect();
     const lane = Math.max(0, Math.min(4, Math.floor((box.bottom - e.clientY) / box.height * 5)));
-    pat[r.id][s] = pat[r.id][s] === lane ? -1 : lane;
-  } else pat[r.id][s] = pat[r.id][s] ? 0 : 1;
-  const on = isOn(r, s);
+    pat[ri][s] = pat[ri][s] === lane ? -1 : lane;
+  } else pat[ri][s] = pat[ri][s] ? 0 : 1;
+  const on = isOn(ri, s);
   renderCell(ri, s, on);
-  if (on) { Sound.play(r.id, 0, r.tune ? pat[r.id][s] : null); }
+  if (on) Sound.play(ri, 0, isTune(ri) ? pat[ri][s] : null);
   dropUndo(); savePattern();
 });
+
+/* ======== scenes ======== */
+function applySceneLook() {
+  const sc = SCENES.find((s) => s.id === sceneId) || SCENES[0];
+  document.body.dataset.scene = sc.id;
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', sc.theme);
+}
+function renderScenes() {
+  const match = SCENES.find((s) => s.rows.every((id, ri) => kit[ri] === id));
+  $('scenes').innerHTML = SCENES.map((s) => `<button class="key${match && match.id === s.id ? ' on' : ''}" data-scene="${s.id}" aria-label="${s.label}">${s.icon}</button>`).join('');
+}
+$('scenes').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-scene]'); if (!b) return;
+  const sc = SCENES.find((s) => s.id === b.dataset.scene);
+  Sound.unlock();
+  kit = [...sc.rows]; sceneId = sc.id; saveKit(); save('scene', sceneId);
+  applySceneLook(); renderScenes();
+  for (let ri = 0; ri < ROW_COUNT; ri++) renderRow(ri, true);
+  Sound.whoosh();
+  window.tbxEvent?.('scene', { scene: sc.id });
+});
+
+/* ======== the picker ======== */
+let pickRow = -1, recording = false;
+function buildPicker() {
+  const row = (cls, tag, ids, extra = '') => `<div class="prow ${cls}"><span class="ptag" aria-hidden="true">${tag}</span>${ids.map((id) => `<button class="pick" data-id="${id}" aria-label="${CREATURES[id].label}">${bugSvg(id)}</button>`).join('')}${extra}</div>`;
+  const recbox = `<div id="recbox" hidden><button id="rec" aria-label="Record my sound"></button><button id="recplay" class="mini" aria-label="Listen">${ICON.listen}</button><button id="recdel" class="mini" aria-label="Delete my sound">${ICON.bin}</button></div>`;
+  $('picks').innerHTML = SCENES.map((s) => row(s.id, s.icon, s.rows)).join('') + row('me', '🎤', ['me'], recbox);
+}
+function renderPicker() {
+  document.querySelectorAll('.pick').forEach((p) => {
+    p.classList.toggle('on', p.dataset.id === kit[pickRow]);
+    if (p.dataset.id === 'me') { p.classList.toggle('off', !Mic.ok || Mic.denied); p.querySelector('.no')?.remove(); if (!Mic.ok || Mic.denied) p.insertAdjacentHTML('beforeend', '<span class="no" aria-hidden="true">🚫</span>'); }
+  });
+  const me = kit[pickRow] === 'me' && Mic.ok && !Mic.denied;
+  $('recbox').hidden = !me;
+  if (me) {
+    const has = !!recs[pickRow], rec = $('rec');
+    rec.innerHTML = recording ? ICON.recStop : ICON.mic;
+    rec.classList.toggle('live', recording); rec.classList.toggle('ask', !has && !recording);
+    rec.setAttribute('aria-label', recording ? 'Stop recording' : 'Record my sound');
+    $('recplay').hidden = !has || recording; $('recdel').hidden = !has || recording;
+  }
+}
+function openPicker(ri) {
+  if (seq.on) seq.stop();
+  pickRow = ri; renderPicker(); $('picker').hidden = false;
+  previewPick();
+}
+function closePicker() {
+  if (recording) Mic.stop?.();
+  $('picker').hidden = true; pickRow = -1;
+}
+function previewPick() {
+  Sound.play(pickRow, 0, isTune(pickRow) ? 2 : null);
+  const p = document.querySelector(`.pick[data-id="${kit[pickRow]}"]`); if (p) restartClass(p, 'hit');
+  sing(heads[pickRow]);
+}
+$('picks').addEventListener('click', async (e) => {
+  if (e.target.closest('#rec')) { toggleRecording(); return; }
+  if (e.target.closest('#recplay')) { previewPick(); return; }
+  if (e.target.closest('#recdel')) {
+    recs[pickRow] = undefined; storeRec(pickRow); Sound.whoosh(); renderPicker();
+    window.tbxEvent?.('record-delete', { row: pickRow });
+    return;
+  }
+  const p = e.target.closest('.pick'); if (!p || recording) return;
+  const id = p.dataset.id;
+  if (id === 'me' && (!Mic.ok || Mic.denied)) { restartClass(p, 'hit'); return; }
+  kit[pickRow] = id; saveKit(); renderScenes(); renderRow(pickRow, true); renderPicker();
+  previewPick();
+  window.tbxEvent?.('swap', { row: pickRow, creature: id });
+});
+async function toggleRecording() {
+  if (recording) { Mic.stop?.(); return; }
+  const ri = pickRow; recording = true; renderPicker();
+  try {
+    const raw = await Mic.record((lvl) => $('rec').style.setProperty('--lvl', Math.min(1, lvl * 8).toFixed(2)));
+    const shaped = shapeRecording(raw);
+    if (shaped) {
+      recs[ri] = shaped; storeRec(ri);
+      window.tbxEvent?.('record', { row: ri, secs: +(shaped.data.length / shaped.rate).toFixed(2) });   // only the length, never the sound
+    }
+  } catch { window.tbxEvent?.('mic-failed', { denied: Mic.denied }); }
+  recording = false; $('rec').style.setProperty('--lvl', 0);
+  if (pickRow === ri) { renderPicker(); if (recs[ri]) previewPick(); }
+}
+$('pickdone').addEventListener('click', closePicker);
+$('picker').addEventListener('click', (e) => { if (e.target === $('picker')) closePicker(); });
 
 /* ======== sizing ======== */
 function fit() {
@@ -351,13 +631,13 @@ function fit() {
   const h = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const gap = Math.max(3, Math.min(6, Math.round(Math.min(w, h) / 90)));
   // columns as wide as fit; rows may grow up to 1.6x taller (portrait phones) or squeeze cells narrower (landscape)
-  const rowsTall = ROWS.length - 1 + 1.9;
+  const rowsTall = ROW_COUNT - 1 + 1.9;
   let cw = Math.min((w - gap * 10) / (STEPS + 1), 104);
   const ch = Math.floor(Math.max(24, Math.min((h - gap * 6) / rowsTall, cw * 1.6, 120)));
   cw = Math.floor(Math.max(24, Math.min(cw, ch * 1.3)));
   const root = document.documentElement.style;
   root.setProperty('--cw', cw + 'px'); root.setProperty('--ch', ch + 'px'); root.setProperty('--cell', Math.min(cw, ch) + 'px');
-  document.documentElement.style.setProperty('--gap', gap + 'px');
+  root.setProperty('--gap', gap + 'px');
   placePlayhead(seq.shown);
 }
 function placePlayhead(s) {
@@ -382,7 +662,7 @@ const seq = {
     this.on = true; this.step = 0; this.queue = []; this.next = this.now() + 0.06;
     this.timer = setInterval(() => this.schedule(), TICK_MS); this.schedule();
     renderPlay();
-    window.tbxEvent?.('play', { bugs: bugCount(), tempo: TEMPOS[tempo].label.toLowerCase() });
+    window.tbxEvent?.('play', { bugs: bugCount(), tempo: TEMPOS[tempo].label.toLowerCase(), kit: kit.join(',') });
   },
   stop() {
     this.on = false; clearInterval(this.timer); this.queue = []; this.shown = -1;
@@ -394,7 +674,7 @@ const seq = {
     if (this.next < now - 0.05) this.next = now + 0.05;   // timer was held up: skip missed beats rather than play them in a burst
     while (this.next < now + LOOKAHEAD) {
       const s = this.step % STEPS;
-      ROWS.forEach((r) => { if (isOn(r, s)) Sound.play(r.id, this.next, r.tune ? pat[r.id][s] : null); });
+      for (let ri = 0; ri < ROW_COUNT; ri++) if (isOn(ri, s)) Sound.play(ri, this.next, isTune(ri) ? pat[ri][s] : null);
       this.queue.push({ s, t: this.next }); if (this.queue.length > 64) this.queue.shift();   // no frames drawn (hidden pane): don't pile up
       this.next += this.stepDur(); this.step++;
     }
@@ -406,7 +686,7 @@ function frame() {
     while (seq.queue.length && seq.queue[0].t <= now) {
       const { s } = seq.queue.shift();
       seq.shown = s; placePlayhead(s);
-      ROWS.forEach((r, ri) => { if (isOn(r, s)) sing(cells[ri][s]); });
+      for (let ri = 0; ri < ROW_COUNT; ri++) if (isOn(ri, s)) sing(cells[ri][s]);
     }
   }
   requestAnimationFrame(frame);
@@ -418,42 +698,44 @@ function renderTempo() {
   $('tempo').innerHTML = TEMPOS.map((t, i) => `<button class="key${i === tempo ? ' on' : ''}" data-t="${i}" aria-label="${t.label}">${t.icon}</button>`).join('');
 }
 function renderMute() { $('mute').innerHTML = Sound.muted ? ICON.soundOff : ICON.soundOn; }
-function renderClear() { const c = $('clear'); c.classList.toggle('undo', !!undoPat); c.innerHTML = undoPat ? ICON.undo : ICON.clear; c.setAttribute('aria-label', undoPat ? 'Bring the bugs back' : 'Clear the garden'); }
+function renderClear() { const c = $('clear'); c.classList.toggle('undo', !!undoPat); c.innerHTML = undoPat ? ICON.undo : ICON.clear; c.setAttribute('aria-label', undoPat ? 'Bring them back' : 'Clear the garden'); }
 function dropUndo() { if (!undoPat) return; undoPat = null; clearTimeout(undoTimer); renderClear(); }
 
 $('play').addEventListener('click', () => { seq.on ? seq.stop() : seq.start(); });
 $('tempo').addEventListener('click', (e) => {
   const b = e.target.closest('[data-t]'); if (!b) return;
   tempo = +b.dataset.t; save('tempo', tempo); renderTempo();
-  Sound.unlock(); Sound.play('cricket', 0);
+  Sound.unlock(); Sound.play(1, 0);
 });
 $('dice').addEventListener('click', () => {
   let p; do { p = fromStrings(SURPRISES[Math.floor(Math.random() * SURPRISES.length)]); } while (JSON.stringify(p) === JSON.stringify(pat) && SURPRISES.length > 1);
   pat = p; dropUndo(); savePattern(); Sound.whoosh();
-  ROWS.forEach((r, ri) => { for (let s = 0; s < STEPS; s++) renderCell(ri, s, isOn(r, s)); });
+  for (let ri = 0; ri < ROW_COUNT; ri++) for (let s = 0; s < STEPS; s++) renderCell(ri, s, isOn(ri, s));
   window.tbxEvent?.('surprise', {});
   if (!seq.on) seq.start();
 });
 $('clear').addEventListener('click', () => {
   if (undoPat) {                       // bring them back
     pat = undoPat; dropUndo(); savePattern(); Sound.whoosh();
-    ROWS.forEach((r, ri) => { for (let s = 0; s < STEPS; s++) renderCell(ri, s, isOn(r, s)); });
+    for (let ri = 0; ri < ROW_COUNT; ri++) for (let s = 0; s < STEPS; s++) renderCell(ri, s, isOn(ri, s));
     return;
   }
   if (!bugCount()) return;
   undoPat = JSON.parse(JSON.stringify(pat));
-  pat = fromStrings({}); savePattern(); Sound.whoosh();
+  pat = fromStrings([]); savePattern(); Sound.whoosh();
   board.querySelectorAll('.cell.has').forEach((c) => restartClass(c, 'fly'));
   setTimeout(() => { if (undoPat) renderAll(); }, 650);
   window.tbxEvent?.('clear', {});
   renderClear(); clearTimeout(undoTimer); undoTimer = setTimeout(dropUndo, UNDO_MS);
 });
 $('mute').addEventListener('click', () => { Sound.setMuted(!Sound.muted); renderMute(); seq.restart(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && seq.on) seq.stop(); });   // background tabs throttle timers
+document.addEventListener('visibilitychange', () => { if (!document.hidden) return; if (seq.on) seq.stop(); if (recording) Mic.stop?.(); });   // background tabs throttle timers
 
 new ResizeObserver(fit).observe($('wrap'));
+buildPicker(); applySceneLook(); renderScenes();
 renderAll(); renderTempo(); renderPlay(); renderMute(); renderClear(); fit();
 requestAnimationFrame(frame);
+if (TEST) window.__bb = { get kit() { return kit; }, get pat() { return pat; }, recs, shapeRecording, CREATURES, SCENES };
 </script>
 <script>
 // Offline support: sw.js caches this page. Once the page has loaded, send it every file the page used (fonts,

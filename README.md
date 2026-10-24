@@ -1,38 +1,61 @@
 # Beat Bugs
 
-A first music maker for young kids. The board is a garden bed with eight beats across and one row for each bug. Tap a
-square to put a bug there, press play, and a light sweeps across the board: every bug it reaches hops and sings its
-sound. Together they make a little loop that keeps playing while you add and take away bugs.
+A first music maker for young kids. The board is a garden bed with eight beats across and five rows, each with a
+creature that makes one sound. Tap a square to put a creature there, press play, and a light sweeps across the board:
+every creature it reaches hops and sings its sound. Together they make a little loop that keeps playing while you add
+and take away creatures.
 
-One board, no levels, bug voices recorded with ElevenLabs (synthesized ones as a fallback). Play it at
-[tb-x.github.io/beat-bugs](https://tb-x.github.io/beat-bugs/).
+Three places to play in (a meadow, a forest and a lake), each with its own five creatures and colours. Any creature can
+go in any row, and a row can even play a sound you record yourself. Creature voices were recorded with ElevenLabs
+(synthesized ones as a fallback). Play it at [tb-x.github.io/beat-bugs](https://tb-x.github.io/beat-bugs/).
 
 It works offline and can be added to the Home Screen: the first visit stores everything it needs, and later visits
 start without internet.
 
-## The bugs
+## The creatures
 
-| Row | Bug | Sound |
-| --- | --- | --- |
-| top, tall | Bee | hums a note: tap high in the square for a high note, low for a low one (five notes that always sound nice together) |
-| 2 | Cricket | a quick chirp (like a hi-hat) |
-| 3 | Ladybird | a clap |
-| 4 | Frog | a low "rib-bit" (like a bass) |
-| 5 | Beetle | a deep boom (like a big drum) |
+The top row is tall and plays a tune: tap high in the square for a high note, low for a low one (five notes that always
+sound nice together). The four rows below are the drums.
+
+| Row | 🌼 Meadow | 🌲 Forest | 🌊 Lake | Like a… |
+| --- | --- | --- | --- | --- |
+| top, tall (tune) | Bee hums | Songbird tweets | Fish blows a bubble | melody |
+| 2 | Cricket chirps | Woodpecker knocks | Dragonfly flutters | hi-hat |
+| 3 | Ladybird claps | Squirrel cracks a nut | Beaver slaps the water | clap |
+| 4 | Frog rib-bits | Owl hoots | Duck quacks | bass |
+| 5 | Beetle booms | Bear drums on a log | Turtle plops in | big drum |
 
 ## How it plays
 
-- Tap an empty square to put a bug there. It pops in and sings once so you hear what you added.
-- Tap a bug to send it away. In the bee row, tapping at a different height moves the bee to that note.
-- Tap the bug at the start of a row to hear its sound.
-- The big green button plays and stops the loop. The light shows which beat is playing, and the bugs on it hop, open
-  their mouths and send up a note.
+- Tap an empty square to put a creature there. It pops in and sings once so you hear what you added.
+- Tap a creature to send it away. In the tune row, tapping at a different height moves it to that note.
+- The flower, tree and wave buttons switch the whole board to the meadow, forest or lake: new creatures and colours,
+  same beat.
+- **Mix and match:** tap the creature at the start of a row (it has a little yellow swap badge) to open the picker,
+  with every creature from all three places plus a microphone. Tap one to hear it; it takes over that row and keeps the
+  row's beat. The green tick closes the picker. A frog playing the tune or a bear on the hi-hat is allowed, and funny.
+- **My own sound:** pick the microphone, then tap the big red button and make a sound ("boom!", a clap, a laugh). It
+  stops by itself when you go quiet, or tap again to stop. The silence is trimmed off and the level evened out, and
+  that row now plays your sound, as a tune in the top row. The play button hears it again, the bin deletes it.
+- The big green button plays and stops the loop. The light shows which beat is playing, and the creatures on it hop,
+  open their mouths and send up a note.
 - The snail, rabbit and cheetah buttons choose slow, medium or fast. The speed changes straight away, even mid-loop.
 - The dice fills the garden with a surprise pattern and starts playing.
-- The bin clears the garden (the bugs fly away). For five seconds it turns into a blue "bring them back" button.
-- The garden and the speed are remembered for next time. On the first visit a simple beat is already there, so
-  pressing play does something straight away.
+- The bin clears the garden (the creatures fly away). For five seconds it turns into a blue "bring them back" button.
+- The garden, the place, the creature in each row, the recordings and the speed are remembered for next time. On the
+  first visit a simple beat is already there, so pressing play does something straight away.
 - Nothing to read and nothing to get wrong: any pattern is a song.
+
+## The microphone and privacy
+
+- The browser asks before the microphone is first used; a parent says yes. It only works on https (GitHub Pages) or
+  `localhost`, not on the laptop's home-network address. Where it can't work, the microphone card is greyed out with
+  a 🚫.
+- A recording is at most 1.5 seconds. It **stays on the device**: it is kept in the browser's local storage (about 16 kHz,
+  roughly 15–50 KB a row), is never uploaded or sent anywhere, and the game's telemetry only notes that a recording was
+  made and how long it was. The bin in the picker deletes it, and so does clearing the browser's site data.
+- The microphone is switched off as soon as each recording stops. (On iPhones the sound can get quieter while the
+  microphone is on; switching it off straight away is meant to bring the volume back. Worth checking on a real phone.)
 
 ## Running it
 
@@ -43,49 +66,54 @@ python -m http.server 5233
 ```
 
 Then go to `http://localhost:5233/`. It's also on the root server (port 5200) at `/beat-bugs/`. Opening `index.html`
-straight from disk works too. Adding `?tbxtest` to the address keeps it silent (for testing).
+straight from disk works too (without the microphone). Adding `?tbxtest` to the address keeps it silent and never
+touches the microphone (a made-up "boo" stands in for a recording), for testing.
 
 ## Tuning knobs
 
 All at the top of the script in `index.html`:
 
-- `STEPS`: beats across the board (8, one bar of eighth notes).
+- `STEPS`: beats across the board (8, one bar of eighth notes). `ROW_COUNT`: five rows, the first one the tune row.
 - `TEMPOS`: the three speeds (76, 100 and 128 beats a minute) and their pictures.
-- `MELODY`: the bee row's five notes, bottom to top (G, A, C, D, E).
-- `ROWS`: which bugs there are and in what order.
-- `SURPRISES`: the dice patterns, one line of text per bug (`x` = a bug, `0`-`4` = a bee note, `.` = empty).
+- `MELODY`: the tune row's five notes, bottom to top (G, A, C, D, E).
+- `CREATURES`: every creature, with its clip and how it's played (see Sounds below).
+- `SCENES`: the three places, their colours and which creature goes in each row.
+- `SURPRISES`: the dice patterns, one line of text per row (`x` = a creature, `0`-`4` = a tune note, `.` = empty).
 - `START_PATTERN`: the beat already there on the first visit.
 - `UNDO_MS`: how long the "bring them back" button stays (5 s).
 - `LOOKAHEAD`, `TICK_MS`: how far ahead the sounds are queued (0.15 s, topped up every 25 ms).
-- `USE_CLIPS`, `ASSET_V`, `BEE_BASE`, `CLIP_TRIM`, `CLIP_CUT`: for the recorded clips (see Sounds below).
+- `USE_CLIPS`, `ASSET_V`, `WHOOSH_TRIM`: the recorded clips.
+- `REC_MAX`, `REC_KEEP`, `REC_SILENCE`, `REC_RATE`: the microphone (2 s at most, 1.5 s kept, stops 0.45 s after the
+  voice goes quiet, stored at about 16 kHz).
 
 ## Ideas for the next version
 
-- More bug rows that scroll in, or a second garden (a pond with frogs and fish, a kitchen with pots and spoons).
+- More places (a kitchen with pots and spoons, a farm, the sea).
 - Two bars (16 beats) for older kids.
-- A "copy me" game: a bug plays a short rhythm and you build it on the board.
+- A "copy me" game: a creature plays a short rhythm and you build it on the board.
 
 ## Sounds
 
-The bugs' voices and the "flying away" sound are short recordings made with ElevenLabs (below). Each loads as
+The creatures' voices and the "flying away" sound are short recordings made with ElevenLabs (below). Each loads as
 `assets/<name>.mp3?v=ASSET_V`, and any sound whose clip can't load falls back to its synthesized Web Audio version
 (the Blast Off pattern). `USE_CLIPS = false` plays everything synthesized. There's no music track: the kids' pattern
 is the music.
 
 Three takes of each were made on 2026-10-24 and the best one kept. They were picked by measuring, not by ear (sound
-stays off while testing): a quick start, a clean decay and, for the bee, a steady note. Two knobs tidy them up in the
-browser instead of re-recording:
+stays off while testing): a quick start, a clean decay and, for the singers, a steady note. Each creature in
+`CREATURES` tidies its clip up in the browser instead of re-recording:
 
-- `CLIP_CUT` plays only part of a clip, with a 20 ms fade at the end. The cricket take had several chirps spread over
-  0.4 s, so only its first chirp (70 ms) is used. The frog and the bee are cut to 0.35 s and 0.32 s so they stay on
-  their beat.
-- `CLIP_TRIM` evens out the volumes. The beetle and the clap came out very quiet (peaks around −20 dB) and are turned
-  up about 15 dB. The frog came out loud and is turned down. Mixed, every clip peaks at about −10 dB.
-
-**The bee's tune.** All five bee notes come from one clip played faster. The hum measures MIDI 64.65 (just above E4,
-median over the clip, steady within about ±0.2 of a semitone), which is set in `BEE_BASE`. The lanes were moved down
-to G, A, C, D, E (`MELODY` 67–76), so the clip plays at 1.15× to 1.93× its speed rather than up to 2.8×. If the top
-notes sound chipmunky on a real device, record a second, higher bee and use it for the top lanes.
+- `cut` plays only part of a clip, with a 20 ms fade at the end. Several takes had more than one hit spread out (the
+  cricket's chirps, the duck's two quacks) or a gap at the start (the songbird, the woodpecker, the turtle), so only one
+  short hit is used.
+- `trim` evens out the volumes. The beetle, clap, bear and beaver came out very quiet (peaks around −20 to −25 dB) and
+  are turned up a lot; the frog, fish and duck came out loud and are turned down. Mixed, every clip peaks at about
+  −9 dB (the knocks and cracks −4 to −8 dB, which sounds about as loud for such short hits).
+- `base` is the note a singer's clip is on, measured from the clip (MIDI: bee 64.65, songbird 87.1, owl 60.42, fish
+  70.3), and `octave` moves the tune up or down for very high or low singers. The tune row plays each note by speeding
+  the clip up or slowing it down, so with these settings every singer plays at 0.63× to 1.93× its speed. The bee and
+  the owl hold a steady note; the songbird's tweet slides down about six semitones and the fish's bubble rises, so their
+  tunes are rougher. Creatures without a note (and recordings) play the tune around their own sound.
 
 ## Audio credits
 
@@ -100,6 +128,18 @@ part of this game only and is **not licensed for reuse**.
 | `assets/bug-cricket.mp3` | the cricket's chirp | "one short cricket chirp, three quick bright clicks, close up, dry, starts immediately" | 0.5 s (first 70 ms used) | 2 of 3 |
 | `assets/bug-frog.mp3` | the frog's rib-bit | "one cute cartoon frog ribbit, low and bouncy, two quick croaks, dry, starts immediately" | 0.6 s (0.35 s used) | 1 of 3 |
 | `assets/bug-bee.mp3` | the bee's hummed note | "a cartoon bumblebee humming one steady musical note, cute and buzzy, no pitch change, starts immediately" | 0.6 s (0.32 s used) | 1 of 3 |
-| `assets/sfx-whoosh.mp3` | bugs flying away (clear, dice) | "a little swarm of cartoon bugs fluttering away quickly, light whoosh of wings, playful" | 1 s | 2 of 3 |
+| `assets/sfx-whoosh.mp3` | creatures flying away (clear, dice, places) | "a little swarm of cartoon bugs fluttering away quickly, light whoosh of wings, playful" | 1 s | 2 of 3 |
+| `assets/forest-bird.mp3` | the songbird's tweet | "a little songbird whistling one clear steady musical note, a single short tweet, no pitch change, close up, dry, starts immediately" | 0.6 s (0.2 s used) | 1 of 3 |
+| `assets/forest-woodpecker.mp3` | the woodpecker's knock | "a woodpecker tapping on a tree three times very fast, dry knocks on wood, close up, starts immediately" | 0.5 s (90 ms used) | 2 of 3 |
+| `assets/forest-squirrel.mp3` | the squirrel cracking a nut | "a single sharp crack of a nut being cracked open, cartoon, dry, starts immediately" | 0.5 s (80 ms used) | 2 of 3 |
+| `assets/forest-owl.mp3` | the owl's hoo | "one soft owl hoot, a single hoo, warm and low, close up, dry, starts immediately" | 0.8 s (0.25 s used) | 3 of 3 |
+| `assets/forest-bear.mp3` | the bear's log drum | "one deep hollow log drum hit, a big wooden thump, warm, dry, starts immediately" | 0.5 s (0.35 s used) | 3 of 3 |
+| `assets/lake-fish.mp3` | the fish's bubble | "a single cute bubble bloop underwater, one round musical blip, starts immediately" | 0.5 s (0.16 s used) | 1 of 3 |
+| `assets/lake-dragonfly.mp3` | the dragonfly's flutter | "a dragonfly's wings buzzing in one short quick flutter, close up, dry, starts immediately" | 0.5 s (0.14 s used) | 3 of 3 |
+| `assets/lake-beaver.mp3` | the beaver's tail slap | "a beaver slapping its tail on the water once, a short sharp splash slap, starts immediately" | 0.5 s (0.2 s used) | 2 of 3 |
+| `assets/lake-duck.mp3` | the duck's quack | "one single cartoon duck quack, short, close up, dry, starts immediately" | 0.5 s (first quack, 0.13 s) | 1 of 3 |
+| `assets/lake-turtle.mp3` | the turtle's plop | "a pebble plopping into a pond, one deep round plop, starts immediately" | 0.5 s (80 ms used) | 1 of 3 |
 
-The 18 takes cost about 130 credits.
+The meadow's 18 takes cost about 130 credits. The forest's and lake's 30 takes (about 16 s of audio) should have cost
+about 200 more; that's an estimate from their length, because other work on the account the same day makes the
+balance impossible to split.
