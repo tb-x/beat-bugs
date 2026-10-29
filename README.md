@@ -1,11 +1,11 @@
 # Beat Bugs
 
-A first music maker for young kids. The board is a garden bed with eight beats across and five rows, each with a
+A first music maker for young kids. The board is a garden bed with eight beats across and seven rows, each with a
 creature that makes one sound. Tap a square to put a creature there, press play, and a light sweeps across the board:
 every creature it reaches hops and sings its sound. Together they make a little loop that keeps playing while you add
 and take away creatures.
 
-Four places to play in (a meadow, a forest, a lake and a band of real instruments), each with its own five players
+Four places to play in (a meadow, a forest, a lake and a band of real instruments), each with its own players
 and colours, plus five more instruments to mix in. Any creature or instrument can go in any row, and a row can even
 play a sound you record yourself. All the voices and instruments were recorded with ElevenLabs (synthesized ones as
 a fallback). Play it at [tb-x.github.io/beat-bugs](https://tb-x.github.io/beat-bugs/).
@@ -15,16 +15,22 @@ start without internet.
 
 ## The creatures
 
-The top row is tall and plays a tune: tap high in the square for a high note, low for a low one (five notes that always
-sound nice together). The four rows below are the drums.
+The top two rows are tall and play tunes: tap high in the square for a high note, low for a low one (five notes that
+always sound nice together, so the two tunes never clash). The five rows below are the drums.
 
 | Row | 🌼 Meadow | 🌲 Forest | 🌊 Lake | 🥁 Band | Like a… |
 | --- | --- | --- | --- | --- | --- |
-| top, tall (tune) | Bee hums | Songbird tweets | Fish blows a bubble | Piano | melody |
-| 2 | Cricket chirps | Woodpecker knocks | Dragonfly flutters | Hi-hat | hi-hat |
-| 3 | Ladybird claps | Squirrel cracks a nut | Beaver slaps the water | Snare drum | clap |
-| 4 | Frog rib-bits | Owl hoots | Duck quacks | Bass guitar | bass |
-| 5 | Beetle booms | Bear drums on a log | Turtle plops in | Big drum | big drum |
+| 1, tall (tune) | Bee hums | Songbird tweets | Fish blows a bubble | Piano | melody |
+| 2, tall (tune) | Songbird tweets | Bee hums | Frog rib-bits | Guitar | second tune |
+| 3 | Cricket chirps | Woodpecker knocks | Dragonfly flutters | Hi-hat | hi-hat |
+| 4 | Ladybird claps | Squirrel cracks a nut | Beaver slaps the water | Snare drum | clap |
+| 5 | Frog rib-bits | Owl hoots | Duck quacks | Bass guitar | bass |
+| 6 | Beetle booms | Bear drums on a log | Turtle plops in | Big drum | big drum |
+| 7 | Dragonfly flutters | Cricket chirps | Ladybird claps | Tambourine | shaker |
+
+Each place has five creatures of its own, so rows 2 and 7 borrow one from another place (the band's come from the 🎵
+extras). The second tune row and the bottom drum row start empty on the first visit, and a garden saved by the
+five-row version keeps its pattern, creatures and recordings, with the two new rows added empty.
 
 The 🎵 row in the picker has five more instruments that don't have a place of their own: guitar, xylophone,
 trumpet, tambourine and triangle. Every instrument has a face and hops on its beat like the creatures.
@@ -32,7 +38,7 @@ trumpet, tambourine and triangle. Every instrument has a face and hops on its be
 ## How it plays
 
 - Tap an empty square to put a creature there. It pops in and sings once so you hear what you added.
-- Tap a creature to send it away. In the tune row, tapping at a different height moves it to that note.
+- Tap a creature to send it away. In a tune row, tapping at a different height moves it to that note.
 - The flower, tree, wave and drum buttons switch the whole board to the meadow, forest, lake or band: new players
   and colours, same beat.
 - **Mix and match:** tap the creature at the start of a row (it has a little yellow swap badge) to open the picker,
@@ -40,7 +46,7 @@ trumpet, tambourine and triangle. Every instrument has a face and hops on its be
   row's beat. The green tick closes the picker. A frog playing the tune or a bear on the hi-hat is allowed, and funny.
 - **My own sound:** pick the microphone, then tap the big red button and make a sound ("boom!", a clap, a laugh). It
   stops by itself when you go quiet, or tap again to stop. The silence is trimmed off and the level evened out, and
-  that row now plays your sound, as a tune in the top row. The play button hears it again, the bin deletes it.
+  that row now plays your sound, as a tune in the top two rows. The play button hears it again, the bin deletes it.
 - The big green button plays and stops the loop. The light shows which beat is playing, and the creatures on it hop,
   open their mouths and send up a note.
 - The snail, rabbit and cheetah buttons choose slow, medium or fast. The speed changes straight away, even mid-loop.
@@ -77,11 +83,14 @@ touches the microphone (a made-up "boo" stands in for a recording), for testing.
 
 All at the top of the script in `index.html`:
 
-- `STEPS`: beats across the board (8, one bar of eighth notes). `ROW_COUNT`: five rows, the first one the tune row.
+- `STEPS`: beats across the board (8, one bar of eighth notes). `ROW_COUNT`: seven rows, the first `TUNE_ROWS` (2)
+  of them tune rows, each `TUNE_TALL` (1.9) times as tall as a drum row. On a phone held sideways the drum rows come
+  out about 38 px tall; a smaller `TUNE_TALL` gives them more room but makes the tune notes harder to hit.
 - `TEMPOS`: the three speeds (76, 100 and 128 beats a minute) and their pictures.
-- `MELODY`: the tune row's five notes, bottom to top (G, A, C, D, E).
+- `MELODY`: the tune rows' five notes, bottom to top (G, A, C, D, E).
 - `CREATURES`: every creature, with its clip and how it's played (see Sounds below).
-- `SCENES`: the four places, their colours and which player goes in each row. `EXTRAS`: the 🎵 instruments in the
+- `SCENES`: the four places, their colours and which player goes in each row (the picker groups the creatures by
+  their own place, so a borrowed one still shows up only once). `EXTRAS`: the 🎵 instruments in the
   picker that have no place of their own.
 - `SURPRISES`: the dice patterns, one line of text per row (`x` = a creature, `0`-`4` = a tune note, `.` = empty).
 - `START_PATTERN`: the beat already there on the first visit.
@@ -102,7 +111,8 @@ All at the top of the script in `index.html`:
 The creatures' voices and the "flying away" sound are short recordings made with ElevenLabs (below). Each loads as
 `assets/<name>.mp3?v=ASSET_V`, and any sound whose clip can't load falls back to its synthesized Web Audio version
 (the Blast Off pattern). `USE_CLIPS = false` plays everything synthesized. There's no music track: the kids' pattern
-is the music.
+is the music. Everything goes through a limiter at the end, so seven rows landing on the same beat get squashed a
+little instead of crackling.
 
 Three takes of each were made on 2026-10-24 and the best one kept. They were picked by measuring, not by ear (sound
 stays off while testing): a quick start, a clean decay and, for the singers, a steady note. Each creature in
@@ -116,7 +126,7 @@ stays off while testing): a quick start, a clean decay and, for the singers, a s
   −9 dB (the knocks and cracks −4 to −8 dB, which sounds about as loud for such short hits).
 - `base` is the note a singer's or instrument's clip is on, measured from the clip (MIDI: bee 64.65, songbird 87.1,
   owl 60.42, fish 70.3, piano 72.1, bass guitar 41.7, guitar 55.1, xylophone 82.1, trumpet 68.9, triangle 70.5), and
-  `octave` moves the tune up or down for very high or low ones (the bass plays two octaves down). The tune row plays
+  `octave` moves the tune up or down for very high or low ones (the bass plays two octaves down). The tune rows play
   each note by speeding the clip up or slowing it down, so with these settings everything plays at 0.63× to 1.93× its
   speed. The instruments all hold a steady note, so the piano, guitar, xylophone and trumpet play the cleanest tunes. The bee and
   the owl hold a steady note; the songbird's tweet slides down about six semitones and the fish's bubble rises, so their
