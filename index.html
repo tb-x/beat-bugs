@@ -110,19 +110,21 @@
   }
 
   /* ---------- the picker ---------- */
-  #picker{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(43,43,58,.35);padding:10px}
-  #picker .sheet{background:var(--cream);border-radius:24px;box-shadow:0 8px 0 var(--lip),0 16px 40px rgba(0,0,0,.25);padding:10px;
+  #picker{position:fixed;inset:0;z-index:70;display:flex;overflow-y:auto;background:rgba(43,43,58,.35);padding:10px}
+  #picker .sheet{margin:auto;background:var(--cream);border-radius:24px;box-shadow:0 8px 0 var(--lip),0 16px 40px rgba(0,0,0,.25);padding:10px;
     display:flex;flex-direction:column;align-items:stretch;gap:6px;max-width:100%;animation:popIn .25s ease-out}
   .prow{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:16px}
   .prow.meadow{background:#DDF3CC} .prow.forest{background:#CFE3C2} .prow.lake{background:#D3ECFF} .prow.band{background:#E9DDFB} .prow.extras{background:#FFF0C9} .prow.me{background:#FFE3E8}
+  .prow.strings{background:#F6E1CF} .prow.winds{background:#DDF0E8}
   #picks{display:flex;flex-direction:column;gap:6px}
-  @media (min-aspect-ratio:5/4){ #picks{display:grid;grid-template-columns:auto auto} }   /* sideways: rows in two columns, so all six fit the height */
+  @media (min-aspect-ratio:5/4){ #picks{display:grid;grid-template-columns:auto auto} }   /* sideways: rows in two columns, so all eight fit the height */
   .ptag{width:calc(var(--pk)*.62);font-size:calc(var(--pk)*.48);line-height:1;text-align:center}
   .pick{width:var(--pk);height:var(--pk);border-radius:14px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);display:grid;place-items:center;position:relative}
   .pick .bug{width:88%;height:88%}
   .pick.on{box-shadow:0 0 0 4px var(--honey-edge),0 3px 0 rgba(0,0,0,.12)}
   .pick.off{opacity:.35}
   .pick .no{position:absolute;right:-4px;top:-4px;font-size:calc(var(--pk)*.34)}
+  .prow.me{flex-wrap:wrap}   /* the record buttons drop under the microphone and singers on a narrow phone */
   #recbox{display:flex;gap:8px;align-items:center;margin-left:4px}
   #rec{width:var(--pk);height:var(--pk);border-radius:50%;background:var(--stop);box-shadow:0 4px 0 var(--stop-edge),0 0 0 calc(var(--lvl,0) * 16px) rgba(242,92,84,.35);
     display:grid;place-items:center;transition:box-shadow .06s}
@@ -210,11 +212,21 @@ const CREATURES = {
   snare:      { scene: 'band', label: 'Snare drum', clip: 'band-snare', trim: 50, cut: [0, 0.25] },
   bass:       { scene: 'band', label: 'Bass guitar', clip: 'band-bass', trim: 0.29, cut: [0, 0.35], base: 41.7, octave: -2 },
   kick:       { scene: 'band', label: 'Big drum', clip: 'band-kick', trim: 0.49, cut: [0, 0.25] },
-  guitar:     { scene: 'extras', label: 'Guitar', clip: 'band-guitar', trim: 5.48, cut: [0, 0.45], base: 55.1, octave: -1 },
   xylophone:  { scene: 'extras', label: 'Xylophone', clip: 'band-xylophone', trim: 37, cut: [0, 0.22], base: 82.1, octave: 1 },
-  trumpet:    { scene: 'extras', label: 'Trumpet', clip: 'band-trumpet', trim: 0.55, cut: [0, 0.3], base: 68.9 },
   tambourine: { scene: 'extras', label: 'Tambourine', clip: 'band-tambourine', trim: 1.4, cut: [0, 0.13] },
   triangle:   { scene: 'extras', label: 'Triangle', clip: 'band-triangle', trim: 1.44, cut: [0, 0.3], base: 70.5 },
+  maracas:    { scene: 'extras', label: 'Maracas', clip: 'band-maracas', trim: 0.28, cut: [0, 0.2] },
+  guitar:     { scene: 'strings', label: 'Guitar', clip: 'band-guitar', trim: 5.48, cut: [0, 0.45], base: 55.1, octave: -1 },
+  violin:     { scene: 'strings', label: 'Violin', clip: 'band-violin', trim: 0.32, cut: [0, 0.35], base: 81.05, octave: 1 },
+  cello:      { scene: 'strings', label: 'Cello', clip: 'band-cello', trim: 0.32, cut: [0, 0.45], base: 54.5, octave: -1 },
+  doublebass: { scene: 'strings', label: 'Double bass', clip: 'band-doublebass', trim: 1.02, cut: [0, 0.4], base: 35.8, octave: -3 },
+  harp:       { scene: 'strings', label: 'Harp', clip: 'band-harp', trim: 7.1, cut: [0, 0.45], base: 73.07 },
+  trumpet:    { scene: 'winds', label: 'Trumpet', clip: 'band-trumpet', trim: 0.55, cut: [0, 0.3], base: 68.9 },
+  trombone:   { scene: 'winds', label: 'Trombone', clip: 'band-trombone', trim: 0.44, cut: [0, 0.4], base: 47.35, octave: -2 },
+  saxophone:  { scene: 'winds', label: 'Saxophone', clip: 'band-saxophone', trim: 0.29, cut: [0, 0.45], base: 60.95, octave: -1 },
+  flute:      { scene: 'winds', label: 'Flute', clip: 'band-flute', trim: 0.74, cut: [0, 0.45], base: 72.16 },
+  singman:    { scene: 'me', label: 'Man singing la', clip: 'sing-man', trim: 0.28, cut: [0, 0.5], base: 57.8, octave: -1 },
+  singwoman:  { scene: 'me', label: 'Woman singing la', clip: 'sing-woman', trim: 2.4, cut: [0, 0.5], base: 67.2 },
   me:         { scene: 'me', label: 'My sound' },
 };
 // A scene fills the seven rows (the two tune rows first) and colours the garden. A place has five creatures of its
@@ -225,8 +237,14 @@ const SCENES = [
   { id: 'lake',   icon: '🌊', label: 'Lake',   theme: '#AEE0F7', rows: ['fish', 'frog', 'dragonfly', 'beaver', 'duck', 'turtle', 'ladybird'] },
   { id: 'band',   icon: '🥁', label: 'Band',   theme: '#D9C6F5', rows: ['piano', 'guitar', 'hihat', 'snare', 'bass', 'kick', 'tambourine'] },
 ];
-// More instruments for the picker only (no place of their own)
-const EXTRAS = { icon: '🎵', ids: ['guitar', 'xylophone', 'trumpet', 'tambourine', 'triangle'] };
+// More instruments for the picker only (no place of their own): one picker row each. The singers share the
+// microphone's row (VOICES).
+const EXTRAS = [
+  { id: 'extras', icon: '🎵', ids: ['xylophone', 'tambourine', 'triangle', 'maracas'] },
+  { id: 'strings', icon: '🎻', ids: ['guitar', 'violin', 'cello', 'doublebass', 'harp'] },
+  { id: 'winds', icon: '🎺', ids: ['trumpet', 'trombone', 'saxophone', 'flute'] },
+];
+const VOICES = ['me', 'singman', 'singwoman'];
 // Patterns for the dice, one string per row (the two tune rows first): x = a creature, digits are tune lanes, . = empty
 const SURPRISES = [
   ['0.2.4.2.', '4...3...', 'x.x.x.x.', '..x...x.', 'x.....x.', 'x...x...', '.x...x..'],
@@ -280,6 +298,16 @@ const PICS = {
   trumpet: `<path d="M14 36q-4 8 6 8h14" fill="none" stroke="#E0A800" stroke-width="3"/><path d="M4 30h32" stroke="#E0A800" stroke-width="7" stroke-linecap="round"/><g fill="#E0A800"><rect x="15" y="19" width="3.2" height="9" rx="1"/><rect x="20.5" y="19" width="3.2" height="9" rx="1"/><rect x="26" y="19" width="3.2" height="9" rx="1"/></g><path d="M33 21l17-13v44l-17-13z" fill="#F4C84E" stroke="#b8861b" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="50" cy="30" rx="5" ry="22" fill="#E3B23C" stroke="#b8861b" stroke-width="1.5"/><circle cx="39" cy="26" r="3.6" fill="#fff"/><circle cx="46" cy="26" r="3.6" fill="#fff"/><circle cx="39.6" cy="26.6" r="1.9" fill="#1b1b24"/><circle cx="46.6" cy="26.6" r="1.9" fill="#1b1b24"/><path class="mc" d="M40 33q2.5 2.6 5 0" fill="none" stroke="#7a5212" stroke-width="1.8" stroke-linecap="round"/><ellipse class="mo" cx="42.5" cy="34" rx="2.4" ry="2.8" fill="#ff5d7e" stroke="#7a5212" stroke-width="1.1"/>`,
   tambourine: `<circle cx="30" cy="30" r="25" fill="#C98B4F"/><circle cx="30" cy="30" r="19.5" fill="#F7E7C6"/><g fill="#d1d5db" stroke="#8a8f99" stroke-width="1"><ellipse cx="30" cy="5.5" rx="4.4" ry="2.6"/><ellipse cx="30" cy="54.5" rx="4.4" ry="2.6"/><ellipse cx="5.5" cy="30" rx="2.6" ry="4.4"/><ellipse cx="54.5" cy="30" rx="2.6" ry="4.4"/><ellipse cx="12.7" cy="12.7" rx="3.4" ry="3.4"/><ellipse cx="47.3" cy="12.7" rx="3.4" ry="3.4"/><ellipse cx="12.7" cy="47.3" rx="3.4" ry="3.4"/><ellipse cx="47.3" cy="47.3" rx="3.4" ry="3.4"/></g>${EYES(27, 24, 36, 4.6)}${MOUTH(34, '#8a5a2b', 3.4)}`,
   triangle: `<path d="M30 3v6" stroke="#E8413C" stroke-width="2"/><path d="M30 9 53 51H7z" fill="#EEF1F5" fill-opacity=".6" stroke="#9aa5b1" stroke-width="4.5" stroke-linejoin="round"/><path d="M48 22l10-10" stroke="#8a8f99" stroke-width="2.6" stroke-linecap="round"/>${EYES(36, 25, 35, 3.8)}${MOUTH(42, '#5f6b78', 2.6)}`,
+  maracas: `<g transform="rotate(28 30 30)"><rect x="40" y="30" width="4" height="22" rx="2" fill="#8a5a2b"/><ellipse cx="42" cy="22" rx="10" ry="11" fill="#FFC93C" stroke="#E59A00" stroke-width="1.5"/></g><g transform="rotate(-18 30 30)"><rect x="25" y="34" width="5" height="24" rx="2.5" fill="#8a5a2b"/><ellipse cx="27.5" cy="23" rx="15" ry="15" fill="#E8413C" stroke="#b8261f" stroke-width="1.5"/><path d="M14 30q4-4 8 0t8 0 8 0 6 0" fill="none" stroke="#FFC93C" stroke-width="2.4"/></g>${EYES(19, 21, 31, 4)}${MOUTH(25.5, '#7a1f1c', 3)}`,
+  violin: `<path d="M50 6 56 52" stroke="#6E4529" stroke-width="2.4" stroke-linecap="round"/><path d="M52.5 8l4.5 38" stroke="#f4f1ea" stroke-width="1"/><rect x="27.5" y="3" width="5" height="22" rx="2" fill="#3b2516"/><circle cx="30" cy="4" r="3.2" fill="#3b2516"/><ellipse cx="30" cy="30" rx="11" ry="9" fill="#D9772B" stroke="#8a4a1b" stroke-width="1.4"/><ellipse cx="30" cy="46" rx="13.5" ry="11" fill="#D9772B" stroke="#8a4a1b" stroke-width="1.4"/><rect x="18" y="33" width="24" height="9" fill="#D9772B"/><path d="M22 41q-2 4 0 8M38 41q2 4 0 8" fill="none" stroke="#3b2516" stroke-width="1.4" stroke-linecap="round"/><rect x="25.5" y="45" width="9" height="2" rx="1" fill="#3b2516"/><path d="M29 7v38M31 7v38" stroke="#fff" stroke-width=".6" opacity=".8"/>${EYES(30, 25, 35, 3.6)}${MOUTH(36.5, '#6E3a1b', 2.6)}`,
+  cello: `<path d="M30 52v7" stroke="#6b7280" stroke-width="2.4" stroke-linecap="round"/><rect x="27.5" y="1" width="5" height="16" rx="2" fill="#3b2516"/><ellipse cx="30" cy="24" rx="13" ry="10" fill="#A0522D" stroke="#5e2f17" stroke-width="1.4"/><ellipse cx="30" cy="42" rx="17" ry="12" fill="#A0522D" stroke="#5e2f17" stroke-width="1.4"/><rect x="16" y="28" width="28" height="8" fill="#A0522D"/><path d="M20 38q-2 5 0 9M40 38q2 5 0 9" fill="none" stroke="#3b2516" stroke-width="1.5" stroke-linecap="round"/><rect x="24.5" y="42" width="11" height="2.2" rx="1" fill="#3b2516"/><path d="M28.6 4v38M31.4 4v38" stroke="#fff" stroke-width=".7" opacity=".8"/>${EYES(25, 24, 36, 4.2)}${MOUTH(31.5, '#f4e6cc', 3)}`,
+  doublebass: `<path d="M30 54v5" stroke="#6b7280" stroke-width="2.6" stroke-linecap="round"/><rect x="28" y="0" width="4" height="12" rx="1.6" fill="#1b1b24"/><path d="M24 12h12q5 8 10 10q8 4 8 16q0 16-24 16T6 38q0-12 8-16q5-2 10-10z" fill="#5C3D2A" stroke="#2f1d12" stroke-width="1.5"/><path d="M17 38q-2 5 0 9M43 38q2 5 0 9" fill="none" stroke="#1b1b24" stroke-width="1.6" stroke-linecap="round"/><rect x="23.5" y="42" width="13" height="2.4" rx="1" fill="#1b1b24"/><path d="M28.8 2v40M31.2 2v40" stroke="#fff" stroke-width=".7" opacity=".7"/>${EYES(27, 23.5, 36.5, 4.6)}${MOUTH(34, '#f4e6cc', 3.4)}`,
+  harp: `<path d="M50 14 22 54" stroke="#C98B4F" stroke-width="5" stroke-linecap="round"/><path d="M12 10q20-12 38 4" fill="none" stroke="#E0A800" stroke-width="4.5" stroke-linecap="round"/><g stroke="#f4f1ea" stroke-width="1"><path d="M20 6.5v43M26 5v35.5M32 5.5v27M38 7v19M44 9.5v10.5"/></g><rect x="8" y="14" width="8" height="40" rx="3" fill="#E0A800" stroke="#b8861b" stroke-width="1.2"/><rect x="5" y="52" width="22" height="6" rx="2" fill="#b8861b"/><circle cx="12" cy="13" r="9.5" fill="#F4C84E" stroke="#b8861b" stroke-width="1.4"/>${EYES(12, 8, 16, 3.2)}<path class="mc" d="M9.5 17q2.5 2.4 5 0" fill="none" stroke="#7a5212" stroke-width="1.6" stroke-linecap="round"/><ellipse class="mo" cx="12" cy="18" rx="2.2" ry="2.6" fill="#ff5d7e" stroke="#7a5212" stroke-width="1"/>`,
+  trombone: `<path d="M44 22H6v14h34" fill="none" stroke="#E0A800" stroke-width="3.6" stroke-linejoin="round"/><path d="M14 22v14" stroke="#b8861b" stroke-width="2.4"/><rect x="2" y="27" width="6" height="4" rx="1" fill="#b8861b"/><path d="M32 20l17-14v44l-17-14z" fill="#F4C84E" stroke="#b8861b" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="49" cy="28" rx="5.5" ry="22" fill="#E3B23C" stroke="#b8861b" stroke-width="1.5"/><circle cx="38" cy="24" r="3.6" fill="#fff"/><circle cx="45" cy="24" r="3.6" fill="#fff"/><circle cx="38.6" cy="24.6" r="1.9" fill="#1b1b24"/><circle cx="45.6" cy="24.6" r="1.9" fill="#1b1b24"/><path class="mc" d="M39 31q2.5 2.6 5 0" fill="none" stroke="#7a5212" stroke-width="1.8" stroke-linecap="round"/><ellipse class="mo" cx="41.5" cy="32" rx="2.4" ry="2.8" fill="#ff5d7e" stroke="#7a5212" stroke-width="1.1"/>`,
+  saxophone: `<path d="M16 6q8-4 12 2" fill="none" stroke="#2B2B3A" stroke-width="3" stroke-linecap="round"/><path d="M28 8v30q0 14 12 14t12-12v-8" fill="none" stroke="#E0A800" stroke-width="15" stroke-linecap="round"/><path d="M28 8v30q0 14 12 14t12-12v-8" fill="none" stroke="#F4C84E" stroke-width="11" stroke-linecap="round"/><ellipse cx="52" cy="30" rx="8.5" ry="3.6" fill="#b8861b"/><g fill="#fff" stroke="#b8861b" stroke-width="1"><circle cx="40" cy="47" r="2"/><circle cx="46" cy="45" r="2"/><circle cx="34" cy="45" r="2"/></g>${EYES(22, 25.5, 31.5, 3)}<path class="mc" d="M26.5 29q2 2 4 0" fill="none" stroke="#7a5212" stroke-width="1.6" stroke-linecap="round"/><ellipse class="mo" cx="28.5" cy="30" rx="2" ry="2.4" fill="#ff5d7e" stroke="#7a5212" stroke-width="1"/>`,
+  flute: `<g transform="rotate(-20 30 30)"><rect x="1" y="22" width="58" height="16" rx="7" fill="#dfe3ea" stroke="#8a8f99" stroke-width="1.5"/><ellipse cx="10" cy="27" rx="2.6" ry="1.8" fill="#4b5563"/><g fill="#9aa5b1"><circle cx="44" cy="30" r="2"/><circle cx="49" cy="30" r="2"/><circle cx="54" cy="30" r="2"/></g>${EYES(28, 24, 34, 3.6)}${MOUTH(33, '#4b5563', 2.6)}</g>`,
+  singman: `<path d="M8 60q0-16 22-16t22 16z" fill="#4C6EF5"/><path d="M24 44l6 3-6 3zM36 44l-6 3 6 3z" fill="#E8413C"/><circle cx="30" cy="47" r="1.8" fill="#b8261f"/><circle cx="15.5" cy="27" r="3.4" fill="#E8B48A"/><circle cx="44.5" cy="27" r="3.4" fill="#E8B48A"/><circle cx="30" cy="26" r="15" fill="#F2C9A0"/><path d="M15 24q0-16 15-16t15 16q-4-8-15-8t-15 8z" fill="#5C3D2A"/><path d="M21 19.5h6M33 19.5h6" stroke="#5C3D2A" stroke-width="1.6" stroke-linecap="round"/>${EYES(24.5, 24, 36, 3.8)}<circle cx="20" cy="31" r="2.4" fill="#ff9fb2" opacity=".7"/><circle cx="40" cy="31" r="2.4" fill="#ff9fb2" opacity=".7"/>${MOUTH(32, '#8a4a2b', 3.6)}`,
+  singwoman: `<path d="M12 30q0-24 18-24t18 24v20q-5 4-9 0V38H21v12q-4 4-9 0z" fill="#E59A00"/><path d="M10 60q0-14 20-14t20 14z" fill="#F06595"/><circle cx="30" cy="27" r="13.5" fill="#F7D6B5"/><path d="M16.5 25q0-15 13.5-15t13.5 15q-6-9-13.5-6-7.5-3-13.5 6z" fill="#E59A00"/><circle cx="44" cy="13" r="3.6" fill="#ff6b9a"/><circle cx="44" cy="13" r="1.4" fill="#FFC93C"/>${EYES(26, 24.5, 35.5, 3.8)}<circle cx="20.5" cy="31" r="2.4" fill="#ff9fb2" opacity=".7"/><circle cx="39.5" cy="31" r="2.4" fill="#ff9fb2" opacity=".7"/>${MOUTH(32.5, '#a14a3b', 3.4)}`,
   me: `<rect x="26" y="34" width="8" height="18" rx="3" fill="#6b7280"/><path d="M20 26a10 10 0 0 0 20 0" fill="none" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/><path d="M22 56h16" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/><path d="M30 52v4" stroke="#6b7280" stroke-width="3"/><circle cx="30" cy="21" r="13" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/><path d="M19 17h22M18 23h24M22 12h16" stroke="#b7bcc5" stroke-width="1.2"/>${EYES(19, 25, 35, 4)}${MOUTH(25, '#4b5563', 3.4)}<circle cx="30" cy="42" r="2.6" fill="#F25C54"/>`,
 };
 const bugSvg = (id) => `<svg class="bug" viewBox="0 0 60 60" aria-hidden="true">${PICS[id]}</svg>`;
@@ -432,8 +460,38 @@ const Sound = (() => {
     trumpet(t, r) { const hz = midiHz(CREATURES.trumpet.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2200; f.connect(env(t, 0.3, 0.3, 0.03)); osc('sawtooth', hz, t, 0.3, f); },
     tambourine(t, r) { for (let i = 0; i < 3; i++) noise(t + i * 0.018, 0.08, 'highpass', 6000 * r, 0.7, env(t + i * 0.018, 0.25, 0.08, 0.001)); },
     triangle(t, r) { const hz = midiHz(CREATURES.triangle.base) * r * 4; osc('sine', hz, t, 0.6, env(t, 0.18, 0.6, 0.002)); osc('sine', hz * 2.76, t, 0.3, env(t, 0.05, 0.3, 0.002)); },
+    maracas(t, r) { for (let i = 0; i < 2; i++) noise(t + i * 0.03, 0.07, 'highpass', 5000 * r, 0.8, env(t + i * 0.03, i ? 0.35 : 0.2, 0.07, 0.003)); },
+    violin(t, r) { bowed(t, 'violin', r, 3200, 0.3); },
+    cello(t, r) { bowed(t, 'cello', r, 1600, 0.4); },
+    doublebass(t, r) { const hz = midiHz(CREATURES.doublebass.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; f.connect(env(t, 0.9, 0.36, 0.004)); osc('triangle', hz * 2, t, 0.36, f); osc('sawtooth', hz * 2, t, 0.36, f); },
+    harp(t, r) { const hz = midiHz(CREATURES.harp.base) * r; osc('triangle', hz, t, 0.45, env(t, 0.3, 0.45, 0.002)); osc('sine', hz * 2, t, 0.2, env(t, 0.08, 0.2, 0.002)); },
+    trombone(t, r) { const hz = midiHz(CREATURES.trombone.base) * r * 2, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1200; f.connect(env(t, 0.4, 0.36, 0.04)); osc('sawtooth', hz, t, 0.36, f); },
+    saxophone(t, r) { const hz = midiHz(CREATURES.saxophone.base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1800; f.connect(env(t, 0.25, 0.4, 0.025)); osc('square', hz, t, 0.4, f); },
+    flute(t, r) { const hz = midiHz(CREATURES.flute.base) * r; osc('sine', hz, t, 0.4, env(t, 0.3, 0.4, 0.04)); noise(t, 0.08, 'bandpass', hz * 2, 2, env(t, 0.05, 0.08, 0.01)); },
+    singman(t, r) { sung(t, midiHz(CREATURES.singman.base) * r, 1); },
+    singwoman(t, r) { sung(t, midiHz(CREATURES.singwoman.base) * r, 1.15); },
     me(t, r) { osc('sine', 600 * r, t, 0.08, env(t, 0.2, 0.08, 0.004), 420 * r); },
   };
+  // a bowed string: a sawtooth with a slow start and a little vibrato
+  function bowed(t, id, r, bright, dur) {
+    const hz = midiHz(CREATURES[id].base) * r, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = bright; f.connect(env(t, 0.3, dur, 0.04));
+    const o = osc('sawtooth', hz, t, dur, f), lfo = ac.createOscillator(), depth = ac.createGain();
+    lfo.frequency.value = 5.5; depth.gain.value = hz * 0.006; lfo.connect(depth).connect(o.frequency); lfo.start(t); lfo.stop(t + dur + 0.05);
+  }
+  // a sung "la": a soft, wobbly voice through the three formants of an "ah", which glide up from an "l" at the start
+  // (sf lifts the formants for a woman's voice)
+  function sung(t, hz, sf) {
+    const dur = 0.45, g = env(t, 0.9, dur, 0.05), dark = ac.createBiquadFilter(), src = ac.createGain();
+    dark.type = 'lowpass'; dark.frequency.value = 1800 * sf; dark.connect(src);
+    for (const [from, to, q, v] of [[320, 780, 4, 1], [900, 1180, 6, 0.45], [2500, 2600, 8, 0.12]]) {
+      const b = ac.createBiquadFilter(), bv = ac.createGain(); b.type = 'bandpass'; b.Q.value = q; bv.gain.value = v;
+      b.frequency.setValueAtTime(from * sf, t); b.frequency.exponentialRampToValueAtTime(to * sf, t + 0.08);
+      src.connect(b).connect(bv).connect(g);
+    }
+    const o = osc('sawtooth', hz, t, dur, dark), lfo = ac.createOscillator(), depth = ac.createGain();
+    lfo.frequency.value = 5.2; depth.gain.setValueAtTime(0, t); depth.gain.linearRampToValueAtTime(hz * 0.012, t + 0.2);   // vibrato that grows, like a singer's
+    lfo.connect(depth).connect(o.frequency); lfo.start(t); lfo.stop(t + dur + 0.05);
+  }
   return {
     get muted() { return muted; },
     get ctx() { return muted ? null : ac; },
@@ -620,7 +678,7 @@ function buildPicker() {
   const row = (cls, tag, ids, extra = '') => `<div class="prow ${cls}"><span class="ptag" aria-hidden="true">${tag}</span>${ids.map((id) => `<button class="pick" data-id="${id}" aria-label="${CREATURES[id].label}">${bugSvg(id)}</button>`).join('')}${extra}</div>`;
   const recbox = `<div id="recbox" hidden><button id="rec" aria-label="Record my sound"></button><button id="recplay" class="mini" aria-label="Listen">${ICON.listen}</button><button id="recdel" class="mini" aria-label="Delete my sound">${ICON.bin}</button></div>`;
   const own = (sid) => Object.keys(CREATURES).filter((id) => CREATURES[id].scene === sid);   // a scene's borrowed rows show under their own place
-  $('picks').innerHTML = SCENES.map((s) => row(s.id, s.icon, own(s.id))).join('') + row('extras', EXTRAS.icon, EXTRAS.ids) + row('me', '🎤', ['me'], recbox);
+  $('picks').innerHTML = SCENES.map((s) => row(s.id, s.icon, own(s.id))).join('') + EXTRAS.map((g) => row(g.id, g.icon, g.ids)).join('') +row('me', '🎤', VOICES, recbox);
 }
 function renderPicker() {
   document.querySelectorAll('.pick').forEach((p) => {

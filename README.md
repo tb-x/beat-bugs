@@ -6,7 +6,7 @@ every creature it reaches hops and sings its sound. Together they make a little 
 and take away creatures.
 
 Four places to play in (a meadow, a forest, a lake and a band of real instruments), each with its own players
-and colours, plus five more instruments to mix in. Any creature or instrument can go in any row, and a row can even
+and colours, plus thirteen more instruments and two singers to mix in. Any creature or instrument can go in any row, and a row can even
 play a sound you record yourself. All the voices and instruments were recorded with ElevenLabs (synthesized ones as
 a fallback). Play it at [tb-x.github.io/beat-bugs](https://tb-x.github.io/beat-bugs/).
 
@@ -28,12 +28,19 @@ always sound nice together, so the two tunes never clash). The five rows below a
 | 6 | Beetle booms | Bear drums on a log | Turtle plops in | Big drum | big drum |
 | 7 | Dragonfly flutters | Cricket chirps | Ladybird claps | Tambourine | shaker |
 
-Each place has five creatures of its own, so rows 2 and 7 borrow one from another place (the band's come from the 🎵
-extras). The second tune row and the bottom drum row start empty on the first visit, and a garden saved by the
+Each place has five creatures of its own, so rows 2 and 7 borrow one from another place (the band's come from the
+extra instruments). The second tune row and the bottom drum row start empty on the first visit, and a garden saved by the
 five-row version keeps its pattern, creatures and recordings, with the two new rows added empty.
 
-The 🎵 row in the picker has five more instruments that don't have a place of their own: guitar, xylophone,
-trumpet, tambourine and triangle. Every instrument has a face and hops on its beat like the creatures.
+Below the places, the picker has more instruments that don't have a place of their own, one row each:
+
+- 🎵 xylophone, tambourine, triangle and maracas
+- 🎻 guitar, violin, cello, double bass and harp
+- 🎺 trumpet, trombone, saxophone and flute
+- 🎤 the microphone (my own sound), a man singing "la" and a woman singing "la"
+
+Every instrument and singer has a face and hops on its beat like the creatures. The singers sing the tune in a tune
+row like any instrument.
 
 ## How it plays
 
@@ -42,7 +49,7 @@ trumpet, tambourine and triangle. Every instrument has a face and hops on its be
 - The flower, tree, wave and drum buttons switch the whole board to the meadow, forest, lake or band: new players
   and colours, same beat.
 - **Mix and match:** tap the creature at the start of a row (it has a little yellow swap badge) to open the picker,
-  with every creature and instrument (the four places, the 🎵 extras) plus a microphone. Tap one to hear it; it takes over that row and keeps the
+  with every creature, instrument and singer, plus a microphone. Tap one to hear it; it takes over that row and keeps the
   row's beat. The green tick closes the picker. A frog playing the tune or a bear on the hi-hat is allowed, and funny.
 - **My own sound:** pick the microphone, then tap the big red button and make a sound ("boom!", a clap, a laugh). It
   stops by itself when you go quiet, or tap again to stop. The silence is trimmed off and the level evened out, and
@@ -90,8 +97,8 @@ All at the top of the script in `index.html`:
 - `MELODY`: the tune rows' five notes, bottom to top (G, A, C, D, E).
 - `CREATURES`: every creature, with its clip and how it's played (see Sounds below).
 - `SCENES`: the four places, their colours and which player goes in each row (the picker groups the creatures by
-  their own place, so a borrowed one still shows up only once). `EXTRAS`: the 🎵 instruments in the
-  picker that have no place of their own.
+  their own place, so a borrowed one still shows up only once). `EXTRAS`: the picker rows of instruments that have
+  no place of their own (🎵, 🎻, 🎺). `VOICES`: the 🎤 row, the microphone and the two singers.
 - `SURPRISES`: the dice patterns, one line of text per row (`x` = a creature, `0`-`4` = a tune note, `.` = empty).
 - `START_PATTERN`: the beat already there on the first visit.
 - `UNDO_MS`: how long the "bring them back" button stays (5 s).
@@ -114,7 +121,8 @@ The creatures' voices and the "flying away" sound are short recordings made with
 is the music. Everything goes through a limiter at the end, so seven rows landing on the same beat get squashed a
 little instead of crackling.
 
-Three takes of each were made on 2026-10-24 and the best one kept. They were picked by measuring, not by ear (sound
+Three takes of each were made (on 2026-10-24, and on 2026-10-29 for the strings, brass, woodwind, maracas and
+singers) and the best one kept. They were picked by measuring, not by ear (sound
 stays off while testing): a quick start, a clean decay and, for the singers, a steady note. Each creature in
 `CREATURES` tidies its clip up in the browser instead of re-recording:
 
@@ -125,17 +133,23 @@ stays off while testing): a quick start, a clean decay and, for the singers, a s
   are turned up a lot; the frog, fish and duck came out loud and are turned down. Mixed, every clip peaks at about
   −9 dB (the knocks and cracks −4 to −8 dB, which sounds about as loud for such short hits).
 - `base` is the note a singer's or instrument's clip is on, measured from the clip (MIDI: bee 64.65, songbird 87.1,
-  owl 60.42, fish 70.3, piano 72.1, bass guitar 41.7, guitar 55.1, xylophone 82.1, trumpet 68.9, triangle 70.5), and
-  `octave` moves the tune up or down for very high or low ones (the bass plays two octaves down). The tune rows play
+  owl 60.42, fish 70.3, piano 72.1, bass guitar 41.7, guitar 55.1, xylophone 82.1, trumpet 68.9, triangle 70.5,
+  violin 81.05, cello 54.5, double bass 35.8, harp 73.07, trombone 47.35, saxophone 60.95, flute 72.16, man singing
+  57.8, woman singing 67.2), and `octave` moves the tune up or down for very high or low ones (the bass and trombone
+  play two octaves down, the double bass three). The 2026-10-29 notes were measured twice, by autocorrelation and by a
+  harmonic product spectrum, which agreed within 0.3 semitones except for the trombone, where they disagreed by
+  exactly an octave; an octave error only moves the register, never puts a note out of tune. The tune rows play
   each note by speeding the clip up or slowing it down, so with these settings everything plays at 0.63× to 1.93× its
-  speed. The instruments all hold a steady note, so the piano, guitar, xylophone and trumpet play the cleanest tunes. The bee and
+  speed. The instruments all hold a steady note, so the piano, guitar, xylophone, trumpet and the 2026-10-29
+  instruments play the cleanest tunes; the singers wobble a little more (they have some vibrato). The bee and
   the owl hold a steady note; the songbird's tweet slides down about six semitones and the fish's bubble rises, so their
   tunes are rougher. Creatures without a note (and recordings) play the tune around their own sound.
 
 ## Audio credits
 
 All made with the ElevenLabs **sound effects** model (`text_to_sound_effects`, not marked beta) on the paid
-**Creator** plan, on 2026-10-24. Paid-plan audio can be used commercially and needs no credit line. The audio is
+**Creator** plan, on 2026-10-24 (the last ten rows on 2026-10-29). The singers are sound effects too, not a voice
+model, so no voice was cloned. Paid-plan audio can be used commercially and needs no credit line. The audio is
 part of this game only and is **not licensed for reuse**.
 
 | File | What it is | Prompt | Length | Take kept |
@@ -166,6 +180,16 @@ part of this game only and is **not licensed for reuse**.
 | `assets/band-trumpet.mp3` | the trumpet (A4) | "one single short trumpet note, bright and steady pitch, dry, starts immediately" | 0.6 s (0.3 s used) | 1 of 3 |
 | `assets/band-tambourine.mp3` | the tambourine | "one tambourine hit, a single jingly shake, dry, starts immediately" | 0.5 s (0.13 s used) | 1 of 3 |
 | `assets/band-triangle.mp3` | the triangle (B♭4) | "one triangle ding, a single bright metallic ring, starts immediately" | 0.8 s (0.3 s used) | 3 of 3 |
+| `assets/band-maracas.mp3` | the maracas | "one maracas shake, a single quick rattle, dry, starts immediately" | 0.5 s (0.2 s used) | 1 of 3 |
+| `assets/band-violin.mp3` | the violin (A5) | "one single violin note, bowed, clear and bright, steady pitch, short, dry, starts immediately" | 0.8 s (0.35 s used) | 2 of 3 |
+| `assets/band-cello.mp3` | the cello (about F♯3) | "one single cello note, bowed, warm and deep, steady pitch, short, dry, starts immediately" | 0.8 s (0.45 s used) | 2 of 3 |
+| `assets/band-doublebass.mp3` | the double bass (about C2) | "one single double bass note, plucked pizzicato, deep and round, steady pitch, dry, starts immediately" | 0.6 s (0.4 s used) | 1 of 3 |
+| `assets/band-harp.mp3` | the harp (C♯5) | "one single harp string plucked, a clear bright note, steady pitch, dry, starts immediately" | 0.8 s (0.45 s used) | 3 of 3 |
+| `assets/band-trombone.mp3` | the trombone (B2 or B3) | "one single short trombone note, warm and brassy, steady pitch, no slide, dry, starts immediately" | 0.6 s (0.4 s used) | 1 of 3 |
+| `assets/band-saxophone.mp3` | the saxophone (C♯4) | "one single short saxophone note, warm and smooth, steady pitch, dry, starts immediately" | 0.6 s (0.45 s used) | 2 of 3 |
+| `assets/band-flute.mp3` | the flute (C5) | "one single short flute note, soft and clear, steady pitch, dry, starts immediately" | 0.6 s (0.45 s used) | 2 of 3 |
+| `assets/sing-man.mp3` | a man singing "la" (B♭3) | "a man singing one single short note "laa", warm baritone voice, steady pitch, clear, dry, no music, starts immediately" | 0.8 s (0.5 s used) | 2 of 3 |
+| `assets/sing-woman.mp3` | a woman singing "la" (G4) | "a woman singing one single short note "laa", clear soprano voice, steady pitch, dry, no music, starts immediately" | 0.8 s (0.5 s used) | 1 of 3 |
 
 The meadow's 18 takes cost about 130 credits. The forest's and lake's 30 takes (about 16 s of audio) should have cost
 about 200 more; that's an estimate from their length, because other work on the account the same day makes the
@@ -173,3 +197,6 @@ balance impossible to split. The band's 36 takes cost about 250 credits (measure
 hi-hat and snare takes, with shorter prompts ("one closed hi-hat hit, crisp and short, dry, starts immediately", "one
 snare drum hit, punchy and crisp, dry, no reverb, starts immediately"), came out almost silent (−55 to −75 dB), so
 both were made again with the prompts above. Even those came out quiet (about −40 dB) and are turned up about 30 dB.
+The 2026-10-29 batch was 30 takes (about 20 s of audio) and cost about 240 credits by the balance. The harps all came
+out quiet (about −22 to −25 dB) and are turned up; the woman's "la" is spikier than the man's, so it's set about 4 dB
+louder than its peak alone suggests.
