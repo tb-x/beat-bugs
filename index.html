@@ -182,6 +182,7 @@ const UNDO_MS = 5000;            // how long the clear button offers to bring th
 const USE_CLIPS = true;          // the ElevenLabs clips in assets/ (see README); false plays everything synthesized
 const ASSET_V = 1;               // bump after replacing any file in assets/
 const WHOOSH_TRIM = 0.62;        // volume of the "flying away" clip
+const CLIP_FADE_IN = 0.003;      // seconds each clip fades in over, so one that starts mid-sound doesn't click
 const REC_MAX = 2;               // longest microphone recording, seconds
 const REC_KEEP = 1.5;            // longest sound kept once the silence is trimmed off
 const REC_SILENCE = 0.45;        // the recording stops this long after the voice goes quiet
@@ -190,7 +191,9 @@ const REC_RATE = 16000;          // recordings are kept at about this sample rat
 // Every creature: its scene, its clip (assets/<clip>.mp3), how loud (trim) and which part of the clip plays
 // (cut: [start, length] in seconds), and for the ones that sing a note, that note (base, MIDI, measured from the
 // clip) so the tune row can pitch them; octave moves the tune up for very high singers. The others play the tune by
-// speeding up or slowing down around their own sound. 'me' is the row's own microphone recording.
+// speeding up or slowing down around their own sound. The singers have one clip per tune note instead (notes:
+// assets/<notes>-0.mp3 to -4.mp3, already on MELODY's notes, octave down), because a sped-up voice sounds like a child.
+// 'me' is the row's own microphone recording.
 const CREATURES = {
   bee:        { scene: 'meadow', label: 'Bee', clip: 'bug-bee', trim: 0.6, cut: [0, 0.32], base: 64.65 },
   cricket:    { scene: 'meadow', label: 'Cricket', clip: 'bug-cricket', trim: 1.35, cut: [0.01, 0.07] },
@@ -225,8 +228,8 @@ const CREATURES = {
   trombone:   { scene: 'winds', label: 'Trombone', clip: 'band-trombone', trim: 0.44, cut: [0, 0.4], base: 47.35, octave: -2 },
   saxophone:  { scene: 'winds', label: 'Saxophone', clip: 'band-saxophone', trim: 0.29, cut: [0, 0.45], base: 60.95, octave: -1 },
   flute:      { scene: 'winds', label: 'Flute', clip: 'band-flute', trim: 0.74, cut: [0, 0.45], base: 72.16 },
-  singman:    { scene: 'me', label: 'Man singing la', clip: 'sing-man', trim: 0.28, cut: [0, 0.5], base: 57.8, octave: -1 },
-  singwoman:  { scene: 'me', label: 'Woman singing la', clip: 'sing-woman', trim: 2.4, cut: [0, 0.5], base: 67.2 },
+  singman:    { scene: 'me', label: 'Man singing la', notes: 'sing-man', trim: 1.4, base: 45.9, octave: -2 },
+  singwoman:  { scene: 'me', label: 'Woman singing la', notes: 'sing-woman', trim: 1.4, base: 57.75, octave: -1 },
   me:         { scene: 'me', label: 'My sound' },
 };
 // A scene fills the seven rows (the two tune rows first) and colours the garden. A place has five creatures of its
@@ -369,7 +372,7 @@ function storeRec(ri) { if (recs[ri]) save('rec' + ri, encodeRec(recs[ri])); els
 /* ======== sound ======== */
 // Each creature has a synthesized voice. With USE_CLIPS on, its recorded clip replaces it once loaded, and the
 // synthesized voice stays as the fallback (Blast Off pattern). The tune row pitches every sound with playbackRate.
-const CLIPS = [...new Set(Object.values(CREATURES).map((c) => c.clip).filter(Boolean)), 'sfx-whoosh'];
+const CLIPS = [...new Set(Object.values(CREATURES).flatMap((c) => c.notes ? MELODY.map((_, i) => `${c.notes}-${i}`) : [c.clip]).filter(Boolean)), 'sfx-whoosh'];
 const Sound = (() => {
   let ac = null, out = null, noiseBuf = null;
   let muted = TEST || load('muted') === '1';
@@ -409,7 +412,8 @@ const Sound = (() => {
   function playBuf(buf, t, rate, vol, off = 0, len = buf.duration - off) {
     const s = ac.createBufferSource(), g = ac.createGain(), end = t + len / rate;
     s.buffer = buf; s.playbackRate.value = rate;
-    g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, Math.max(t, end - 0.02)); g.gain.linearRampToValueAtTime(0, end);   // short fade, no click at the cut
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + CLIP_FADE_IN);   // short fades in and out, no click at either cut
+    g.gain.setValueAtTime(vol, Math.max(t + CLIP_FADE_IN, end - 0.02)); g.gain.linearRampToValueAtTime(0, end);
     s.connect(g).connect(out); s.start(t, off); s.stop(end + 0.01);
   }
   function recBuf(ri) {
@@ -505,6 +509,11 @@ const Sound = (() => {
       let rate = 1;
       if (lane != null) rate = c.base ? 2 ** ((MELODY[lane] + 12 * (c.octave || 0) - c.base) / 12) : 2 ** ((MELODY[lane] - MELODY[2]) / 12);
       if (id === 'me') { const b = recBuf(ri); if (b) playBuf(b, t, rate, 0.9); else SYNTH.me(t, rate); return; }
+      if (c.notes) {   // a singer: the clip already on this note (the middle one outside a tune row), at its own speed
+        const nb = clips[`${c.notes}-${lane ?? 2}`];
+        if (nb) playBuf(nb, t, 1, 0.9 * c.trim); else SYNTH[id](t, rate);
+        return;
+      }
       const buf = clips[c.clip];
       if (buf) { const [off, len] = c.cut || [0, buf.duration]; playBuf(buf, t, rate, 0.9 * (c.trim ?? 1), off, len); }
       else SYNTH[id](t, rate);

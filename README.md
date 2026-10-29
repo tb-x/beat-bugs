@@ -39,8 +39,8 @@ Below the places, the picker has more instruments that don't have a place of the
 - 🎺 trumpet, trombone, saxophone and flute
 - 🎤 the microphone (my own sound), a man singing "la" and a woman singing "la"
 
-Every instrument and singer has a face and hops on its beat like the creatures. The singers sing the tune in a tune
-row like any instrument.
+Every instrument and singer has a face and hops on its beat like the creatures. In a tune row the man sings G2 to E3
+and the woman an octave higher, G3 to E4; in a drum row they sing their middle note (C).
 
 ## How it plays
 
@@ -103,7 +103,8 @@ All at the top of the script in `index.html`:
 - `START_PATTERN`: the beat already there on the first visit.
 - `UNDO_MS`: how long the "bring them back" button stays (5 s).
 - `LOOKAHEAD`, `TICK_MS`: how far ahead the sounds are queued (0.15 s, topped up every 25 ms).
-- `USE_CLIPS`, `ASSET_V`, `WHOOSH_TRIM`: the recorded clips.
+- `USE_CLIPS`, `ASSET_V`, `WHOOSH_TRIM`: the recorded clips. `CLIP_FADE_IN`: every clip fades in over 3 ms, so
+  one that starts mid-sound doesn't click.
 - `REC_MAX`, `REC_KEEP`, `REC_SILENCE`, `REC_RATE`: the microphone (2 s at most, 1.5 s kept, stops 0.45 s after the
   voice goes quiet, stored at about 16 kHz).
 
@@ -134,16 +135,24 @@ stays off while testing): a quick start, a clean decay and, for the singers, a s
   −9 dB (the knocks and cracks −4 to −8 dB, which sounds about as loud for such short hits).
 - `base` is the note a singer's or instrument's clip is on, measured from the clip (MIDI: bee 64.65, songbird 87.1,
   owl 60.42, fish 70.3, piano 72.1, bass guitar 41.7, guitar 55.1, xylophone 82.1, trumpet 68.9, triangle 70.5,
-  violin 81.05, cello 54.5, double bass 35.8, harp 73.07, trombone 47.35, saxophone 60.95, flute 72.16, man singing
-  57.8, woman singing 67.2), and `octave` moves the tune up or down for very high or low ones (the bass and trombone
-  play two octaves down, the double bass three). The 2026-10-29 notes were measured twice, by autocorrelation and by a
+  violin 81.05, cello 54.5, double bass 35.8, harp 73.07, trombone 47.35, saxophone 60.95, flute 72.16), and `octave`
+  moves the tune up or down for very high or low ones (the bass and trombone play two octaves down, the double bass
+  three). The 2026-10-29 notes were measured twice, by autocorrelation and by a
   harmonic product spectrum, which agreed within 0.3 semitones except for the trombone, where they disagreed by
   exactly an octave; an octave error only moves the register, never puts a note out of tune. The tune rows play
   each note by speeding the clip up or slowing it down, so with these settings everything plays at 0.63× to 1.93× its
   speed. The instruments all hold a steady note, so the piano, guitar, xylophone, trumpet and the 2026-10-29
-  instruments play the cleanest tunes; the singers wobble a little more (they have some vibrato). The bee and
+  instruments play the cleanest tunes. The bee and
   the owl hold a steady note; the songbird's tweet slides down about six semitones and the fish's bubble rises, so their
   tunes are rougher. Creatures without a note (and recordings) play the tune around their own sound.
+- **The singers are different** (`notes` in `CREATURES`): a voice sped up sounds like a child or a chipmunk, which is
+  what the first version did (the man's high notes sounded like a boy). So each singer has five files, one already on
+  each tune note, played at normal speed: `sing-man-0.mp3` to `-4` (G2, A2, C3, D3, E3) and `sing-woman-0.mp3` to `-4`
+  (G3, A3, C4, D4, E4). Each set comes from one take (so it's one singer, not five), moved onto each note offline with
+  Rubber Band (ffmpeg's `rubberband` filter, `formant=preserved`, which keeps the voice's tone while changing the
+  note), at most 6.25 semitones. Each file is cut to 0.62 s with a 15 ms fade-in and a 0.1 s fade-out and levelled to
+  the same loudness over the vowel; every note was measured afterwards and is within 0.2 semitones. The script that
+  made them isn't in the repo; the recipe is the paragraph above.
 
 ## Audio credits
 
@@ -188,8 +197,8 @@ part of this game only and is **not licensed for reuse**.
 | `assets/band-trombone.mp3` | the trombone (B2 or B3) | "one single short trombone note, warm and brassy, steady pitch, no slide, dry, starts immediately" | 0.6 s (0.4 s used) | 1 of 3 |
 | `assets/band-saxophone.mp3` | the saxophone (C♯4) | "one single short saxophone note, warm and smooth, steady pitch, dry, starts immediately" | 0.6 s (0.45 s used) | 2 of 3 |
 | `assets/band-flute.mp3` | the flute (C5) | "one single short flute note, soft and clear, steady pitch, dry, starts immediately" | 0.6 s (0.45 s used) | 2 of 3 |
-| `assets/sing-man.mp3` | a man singing "la" (B♭3) | "a man singing one single short note "laa", warm baritone voice, steady pitch, clear, dry, no music, starts immediately" | 0.8 s (0.5 s used) | 2 of 3 |
-| `assets/sing-woman.mp3` | a woman singing "la" (G4) | "a woman singing one single short note "laa", clear soprano voice, steady pitch, dry, no music, starts immediately" | 0.8 s (0.5 s used) | 1 of 3 |
+| `assets/sing-man-0.mp3` to `-4` | a man singing "la", on G2, A2, C3, D3, E3 | "a man with a deep bass voice singing one short syllable "la" on the low note G2, a soft "l" then an open "ah", steady pitch, clear, dry, no music" (sung on about A♯2 whatever the note asked) | 1 s (0.62 s used), moved onto each note (see Sounds) | 6 of 8 |
+| `assets/sing-woman-0.mp3` to `-4` | a woman singing "la", on G3, A3, C4, D4, E4 | "a woman with a high soprano voice singing one short syllable "la" on a high note, a soft "l" then an open "ah", one steady note, clear, dry, no music" (sung on about A♯3) | 1 s (0.62 s used), moved onto each note | 13 of 16 |
 
 The meadow's 18 takes cost about 130 credits. The forest's and lake's 30 takes (about 16 s of audio) should have cost
 about 200 more; that's an estimate from their length, because other work on the account the same day makes the
@@ -197,6 +206,10 @@ balance impossible to split. The band's 36 takes cost about 250 credits (measure
 hi-hat and snare takes, with shorter prompts ("one closed hi-hat hit, crisp and short, dry, starts immediately", "one
 snare drum hit, punchy and crisp, dry, no reverb, starts immediately"), came out almost silent (−55 to −75 dB), so
 both were made again with the prompts above. Even those came out quiet (about −40 dB) and are turned up about 30 dB.
-The 2026-10-29 batch was 30 takes (about 20 s of audio) and cost about 240 credits by the balance. The harps all came
-out quiet (about −22 to −25 dB) and are turned up; the woman's "la" is spikier than the man's, so it's set about 4 dB
-louder than its peak alone suggests.
+The 2026-10-29 instruments were 24 takes (about 15 s of audio); the harps all came out quiet (about −22 to −25 dB)
+and are turned up. The singers took two rounds. The first six takes ("a man/woman singing one single short note
+"laa"… starts immediately") started mid-sound, so they clicked, and the man's came out as "a-la"; they were replaced.
+The second round was 24 one-second takes naming a note in each prompt. The model ignored the note names: the men sang
+about A♯2 to D3, and the women 147–240 Hz (a man's range) even when asked for a "high soprano" (only one of 16 came out
+high, and it slid about). Asking for a soft "l" worked, and saying "starts immediately" is what cut the starts off.
+All the 2026-10-29 audio together (54 takes, about 39 s) cost about 500 credits by the balance.
